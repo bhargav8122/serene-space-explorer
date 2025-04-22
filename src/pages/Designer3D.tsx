@@ -2,16 +2,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, useGLTF } from '@react-three/drei';
+import { OrbitControls, Environment } from '@react-three/drei';
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 
 // A simple room model
-function Room(props: any) {
+function Room() {
   return (
-    <group {...props} dispose={null}>
+    <group>
       <mesh receiveShadow castShadow position={[0, 0, 0]}>
         <boxGeometry args={[10, 0.1, 10]} />
         <meshStandardMaterial color="#f3f3f3" />
