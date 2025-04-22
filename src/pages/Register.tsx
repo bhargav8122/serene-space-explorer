@@ -1,15 +1,17 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { registerUser } from "@/utils/authUtils";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -25,12 +27,22 @@ const Register = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
-    console.log("Register attempt:", formData);
-    // Here you would typically handle registration
-    alert("Registration functionality would be implemented here");
+
+    const success = registerUser({
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (success) {
+      toast.success("Registration successful!");
+      navigate('/login');
+    } else {
+      toast.error("Email already registered");
+    }
   };
 
   return (

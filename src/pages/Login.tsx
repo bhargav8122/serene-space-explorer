@@ -1,14 +1,16 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { loginUser } from "@/utils/authUtils";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,9 +23,12 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", formData);
-    // Here you would typically handle authentication
-    alert("Login functionality would be implemented here");
+    if (loginUser(formData.email, formData.password)) {
+      toast.success("Login successful!");
+      navigate('/');
+    } else {
+      toast.error("Invalid email or password");
+    }
   };
 
   return (
