@@ -1,12 +1,13 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
+import { OrbitControls, Environment, TransformControls } from '@react-three/drei';
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { MoveHorizontal, MoveVertical, Trash2 } from "lucide-react";
 
 // A simple room model
 function Room() {
@@ -49,14 +50,87 @@ interface PlacedFurnitureItem {
   position: [number, number, number];
 }
 
-// A simple movable furniture component
-function Furniture({ position, color, size, type }: { position: [number, number, number], color: string, size: [number, number, number], type: string }) {
+// A selectable and movable furniture component
+function Furniture({ 
+  position, 
+  color, 
+  size, 
+  type, 
+  id, 
+  isSelected, 
+  onSelect 
+}: { 
+  position: [number, number, number], 
+  color: string, 
+  size: [number, number, number], 
+  type: string,
+  id: number,
+  isSelected: boolean,
+  onSelect: (id: number) => void
+}) {
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    onSelect(id);
+  };
+
   return (
-    <mesh position={position} castShadow>
+    <mesh 
+      position={position} 
+      castShadow 
+      onClick={handleClick}
+    >
       {type === 'cube' && <boxGeometry args={size} />}
       {type === 'cylinder' && <cylinderGeometry args={[size[0], size[0], size[1], 32]} />}
-      <meshStandardMaterial color={color} />
+      <meshStandardMaterial 
+        color={color} 
+        emissive={isSelected ? '#ff0000' : undefined}
+        emissiveIntensity={isSelected ? 0.2 : 0}
+      />
     </mesh>
+  );
+}
+
+// Furniture with transform controls when selected
+function FurnitureWithControls({
+  item,
+  isSelected,
+  onSelect,
+  onPositionChange
+}: {
+  item: PlacedFurnitureItem,
+  isSelected: boolean,
+  onSelect: (id: number) => void,
+  onPositionChange: (id: number, newPosition: [number, number, number]) => void
+}) {
+  const transformRef = useRef<any>(null);
+  
+  const handleChange = () => {
+    if (transformRef.current && transformRef.current.object) {
+      const newPosition = transformRef.current.object.position.toArray() as [number, number, number];
+      onPositionChange(item.id, newPosition);
+    }
+  };
+
+  return (
+    <>
+      <Furniture
+        id={item.id}
+        position={item.position}
+        color={item.color}
+        size={item.size}
+        type={item.type}
+        isSelected={isSelected}
+        onSelect={onSelect}
+      />
+      {isSelected && (
+        <TransformControls
+          ref={transformRef}
+          position={item.position}
+          mode="translate"
+          onObjectChange={handleChange}
+        />
+      )}
+    </>
   );
 }
 
@@ -91,7 +165,23 @@ const Designer3D = () => {
     toast.success(`Added ${option.name}`);
   };
 
-  const saveDeisgn = () => {
+  const updateFurniturePosition = useCallback((id: number, newPosition: [number, number, number]) => {
+    setPlacedFurniture(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, position: newPosition } : item
+      )
+    );
+  }, []);
+
+  const deleteFurniture = useCallback(() => {
+    if (selectedFurniture !== null) {
+      setPlacedFurniture(prev => prev.filter(item => item.id !== selectedFurniture));
+      setSelectedFurniture(null);
+      toast.success("Item removed");
+    }
+  }, [selectedFurniture]);
+
+  const saveDesign = () => {
     localStorage.setItem('savedDesign', JSON.stringify(placedFurniture));
     toast.success("Design saved successfully!");
   };
@@ -112,6 +202,10 @@ const Designer3D = () => {
       toast.error("No saved design found");
     }
   };
+
+  const deselectAll = useCallback(() => {
+    setSelectedFurniture(null);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -160,9 +254,25 @@ const Designer3D = () => {
                   ))}
                 </div>
                 
+                {selectedFurniture !== null && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-medium mb-3">Item Controls</h3>
+                    <Button
+                      onClick={deleteFurniture}
+                      className="w-full bg-red-500 hover:bg-red-600 mb-2"
+                      variant="destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" /> Remove Item
+                    </Button>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Click and drag the arrows in the 3D view to move the selected item
+                    </p>
+                  </div>
+                )}
+                
                 <div className="mt-6 space-y-2">
                   <Button
-                    onClick={saveDeisgn}
+                    onClick={saveDesign}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
                     Save Design
@@ -179,7 +289,11 @@ const Designer3D = () => {
               
               {/* 3D Canvas */}
               <div className="lg:col-span-3 bg-gray-100 rounded-lg shadow-md" style={{ height: "600px" }}>
-                <Canvas shadows camera={{ position: [10, 10, 10], fov: 50 }}>
+                <Canvas 
+                  shadows 
+                  camera={{ position: [10, 10, 10], fov: 50 }}
+                  onClick={deselectAll}
+                >
                   <ambientLight intensity={0.5} />
                   <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} castShadow />
                   <pointLight position={[-10, -10, -10]} />
@@ -187,16 +301,21 @@ const Designer3D = () => {
                   <Room />
                   
                   {placedFurniture.map((item) => (
-                    <Furniture
+                    <FurnitureWithControls
                       key={item.id}
-                      position={item.position}
-                      color={item.color}
-                      size={item.size}
-                      type={item.type}
+                      item={item}
+                      isSelected={selectedFurniture === item.id}
+                      onSelect={setSelectedFurniture}
+                      onPositionChange={updateFurniturePosition}
                     />
                   ))}
                   
-                  <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
+                  <OrbitControls 
+                    enablePan={true} 
+                    enableZoom={true} 
+                    enableRotate={true} 
+                    enabled={selectedFurniture === null}
+                  />
                   <Environment preset="apartment" />
                 </Canvas>
               </div>
@@ -207,7 +326,10 @@ const Designer3D = () => {
               <ul className="list-disc list-inside space-y-2 text-gray-700">
                 <li>Click on furniture items from the menu to add them to your scene</li>
                 <li>Use the color picker to select different colors for your furniture</li>
-                <li>Click and drag in the 3D view to rotate the camera</li>
+                <li>Click on any furniture item to select it - it will highlight in red</li>
+                <li>Use the arrow controls that appear to move the selected furniture</li>
+                <li>Click the "Remove Item" button to delete selected furniture</li>
+                <li>Click and drag in the 3D view to rotate the camera (when no item is selected)</li>
                 <li>Use the scroll wheel to zoom in and out</li>
                 <li>Save your design to come back to it later</li>
               </ul>
