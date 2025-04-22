@@ -1,5 +1,4 @@
-
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, TransformControls } from '@react-three/drei';
@@ -8,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
 import { MoveHorizontal, MoveVertical, Trash2 } from "lucide-react";
+import { transformObject, saveFurnitureState } from '../services/threeDService';
 
 // A simple room model
 function Room() {
@@ -104,10 +104,15 @@ function FurnitureWithControls({
 }) {
   const transformRef = useRef<any>(null);
   
-  const handleChange = () => {
+  const handleChange = async () => {
     if (transformRef.current && transformRef.current.object) {
       const newPosition = transformRef.current.object.position.toArray() as [number, number, number];
-      onPositionChange(item.id, newPosition);
+      
+      // Call API to transform object
+      const result = await transformObject(item.id, newPosition);
+      if (result.success) {
+        onPositionChange(item.id, newPosition);
+      }
     }
   };
 
@@ -181,9 +186,12 @@ const Designer3D = () => {
     }
   }, [selectedFurniture]);
 
-  const saveDesign = () => {
-    localStorage.setItem('savedDesign', JSON.stringify(placedFurniture));
-    toast.success("Design saved successfully!");
+  const saveDesign = async () => {
+    const result = await saveFurnitureState(placedFurniture);
+    if (result.success) {
+      toast.success("Design saved successfully!");
+      localStorage.setItem('savedDesign', JSON.stringify(placedFurniture));
+    }
   };
 
   const loadDesign = () => {
