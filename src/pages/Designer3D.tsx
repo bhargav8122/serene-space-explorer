@@ -32,6 +32,23 @@ function Room(props: any) {
   );
 }
 
+// Types for furniture
+interface FurnitureItem {
+  id: number;
+  name: string;
+  type: string;
+  color: string;
+  size: [number, number, number]; // Explicitly typed as tuple with 3 elements
+}
+
+interface PlacedFurnitureItem {
+  id: number;
+  type: string;
+  color: string;
+  size: [number, number, number]; // Explicitly typed as tuple with 3 elements
+  position: [number, number, number];
+}
+
 // A simple movable furniture component
 function Furniture({ position, color, size, type }: { position: [number, number, number], color: string, size: [number, number, number], type: string }) {
   return (
@@ -44,7 +61,7 @@ function Furniture({ position, color, size, type }: { position: [number, number,
 }
 
 // List of furniture options
-const furnitureOptions = [
+const furnitureOptions: FurnitureItem[] = [
   { id: 1, name: "Sofa", type: "cube", color: "#8b4513", size: [3, 1, 1.5] },
   { id: 2, name: "Coffee Table", type: "cube", color: "#d2b48c", size: [2, 0.5, 1] },
   { id: 3, name: "Dining Table", type: "cube", color: "#a0522d", size: [2.5, 0.8, 1.5] },
@@ -58,17 +75,17 @@ const colorOptions = ["#8b4513", "#d2b48c", "#a0522d", "#deb887", "#228b22", "#c
 
 const Designer3D = () => {
   const navigate = useNavigate();
-  const [placedFurniture, setPlacedFurniture] = useState<Array<{id: number, type: string, color: string, size: [number, number, number], position: [number, number, number]}>>([]);
+  const [placedFurniture, setPlacedFurniture] = useState<PlacedFurnitureItem[]>([]);
   const [selectedFurniture, setSelectedFurniture] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("#8b4513");
 
-  const addFurniture = (option: typeof furnitureOptions[0]) => {
-    const newFurniture = {
+  const addFurniture = (option: FurnitureItem) => {
+    const newFurniture: PlacedFurnitureItem = {
       id: Date.now(),
       type: option.type,
       color: selectedColor,
       size: option.size,
-      position: [0, option.size[1]/2, 0] as [number, number, number]
+      position: [0, option.size[1]/2, 0]
     };
     setPlacedFurniture([...placedFurniture, newFurniture]);
     toast.success(`Added ${option.name}`);
@@ -82,7 +99,14 @@ const Designer3D = () => {
   const loadDesign = () => {
     const savedDesign = localStorage.getItem('savedDesign');
     if (savedDesign) {
-      setPlacedFurniture(JSON.parse(savedDesign));
+      const parsedDesign = JSON.parse(savedDesign) as PlacedFurnitureItem[];
+      // Ensure all loaded furniture items have the correct types for size and position
+      const typedDesign: PlacedFurnitureItem[] = parsedDesign.map(item => ({
+        ...item,
+        size: item.size as [number, number, number],
+        position: item.position as [number, number, number]
+      }));
+      setPlacedFurniture(typedDesign);
       toast.success("Design loaded successfully!");
     } else {
       toast.error("No saved design found");
