@@ -25,6 +25,11 @@ const MasterBedroom = () => {
             <p className="text-xl mb-6 max-w-2xl mx-auto">
               Luxurious master bedroom designs for your personal sanctuary.
             </p>
+            <Link to="/3d-designer">
+              <Button className="bg-primary hover:bg-primary/90 text-lg">
+                Design Your Own in 3D
+              </Button>
+            </Link>
           </div>
         </section>
         
@@ -45,6 +50,11 @@ const MasterBedroom = () => {
                   <Link to="/register">
                     <Button variant="outline" className="border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white">
                       Create Account
+                    </Button>
+                  </Link>
+                  <Link to="/3d-designer">
+                    <Button variant="secondary" className="bg-purple-600 hover:bg-purple-700 text-white">
+                      Try 3D Designer
                     </Button>
                   </Link>
                 </div>
