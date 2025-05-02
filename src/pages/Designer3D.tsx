@@ -1,33 +1,61 @@
+
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, TransformControls } from '@react-three/drei';
+import { OrbitControls, Environment, TransformControls, Sky, Bounds, softShadows, ContactShadows } from '@react-three/drei';
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
-import { MoveHorizontal, MoveVertical, Trash2 } from "lucide-react";
-import { transformObject, saveFurnitureState } from '../services/threeDService';
+import { MoveHorizontal, MoveVertical, Trash2, Download, Save, Cloud } from "lucide-react";
+import { transformObject, saveFurnitureState, downloadDesign } from '../services/threeDService';
+import { getCurrentUser } from '@/utils/authUtils';
 
-// A simple room model
+// Enable better shadows for more realistic rendering
+softShadows();
+
+// A simple room model with enhanced realism
 function Room() {
   return (
     <group>
-      <mesh receiveShadow castShadow position={[0, 0, 0]}>
-        <boxGeometry args={[10, 0.1, 10]} />
-        <meshStandardMaterial color="#f3f3f3" />
+      {/* Floor */}
+      <mesh receiveShadow castShadow position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[10, 10]} />
+        <meshStandardMaterial color="#f8f8f8" roughness={0.8} metalness={0.2} />
       </mesh>
+      
+      {/* Back Wall */}
       <mesh receiveShadow position={[0, 5, -5]}>
         <boxGeometry args={[10, 10, 0.1]} />
-        <meshStandardMaterial color="#ffffff" />
+        <meshStandardMaterial color="#ffffff" roughness={0.75} />
       </mesh>
+      
+      {/* Left Wall */}
       <mesh receiveShadow position={[-5, 5, 0]}>
         <boxGeometry args={[0.1, 10, 10]} />
-        <meshStandardMaterial color="#e6e6e6" />
+        <meshStandardMaterial color="#e6e6e6" roughness={0.75} />
       </mesh>
+      
+      {/* Right Wall */}
       <mesh receiveShadow position={[5, 5, 0]}>
         <boxGeometry args={[0.1, 10, 10]} />
-        <meshStandardMaterial color="#e6e6e6" />
+        <meshStandardMaterial color="#e6e6e6" roughness={0.75} />
+      </mesh>
+      
+      {/* Baseboard */}
+      <mesh position={[0, 0.25, -4.95]} castShadow>
+        <boxGeometry args={[10, 0.5, 0.1]} />
+        <meshStandardMaterial color="#d0d0d0" />
+      </mesh>
+      
+      <mesh position={[-4.95, 0.25, 0]} castShadow>
+        <boxGeometry args={[0.1, 0.5, 10]} />
+        <meshStandardMaterial color="#d0d0d0" />
+      </mesh>
+      
+      <mesh position={[4.95, 0.25, 0]} castShadow>
+        <boxGeometry args={[0.1, 0.5, 10]} />
+        <meshStandardMaterial color="#d0d0d0" />
       </mesh>
     </group>
   );
@@ -50,7 +78,7 @@ interface PlacedFurnitureItem {
   position: [number, number, number];
 }
 
-// A selectable and movable furniture component
+// A selectable and movable furniture component with enhanced materials
 function Furniture({ 
   position, 
   color, 
@@ -77,12 +105,15 @@ function Furniture({
     <mesh 
       position={position} 
       castShadow 
+      receiveShadow
       onClick={handleClick}
     >
       {type === 'cube' && <boxGeometry args={size} />}
       {type === 'cylinder' && <cylinderGeometry args={[size[0], size[0], size[1], 32]} />}
       <meshStandardMaterial 
         color={color} 
+        roughness={0.7}
+        metalness={0.2}
         emissive={isSelected ? '#ff0000' : undefined}
         emissiveIntensity={isSelected ? 0.2 : 0}
       />
@@ -157,6 +188,15 @@ const Designer3D = () => {
   const [placedFurniture, setPlacedFurniture] = useState<PlacedFurnitureItem[]>([]);
   const [selectedFurniture, setSelectedFurniture] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("#8b4513");
+  const [showAuthWarning, setShowAuthWarning] = useState<boolean>(false);
+  
+  // Check if user is logged in
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      setShowAuthWarning(true);
+    }
+  }, []);
 
   const addFurniture = (option: FurnitureItem) => {
     const newFurniture: PlacedFurnitureItem = {
@@ -187,10 +227,40 @@ const Designer3D = () => {
   }, [selectedFurniture]);
 
   const saveDesign = async () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      toast.error("Please log in to save your design");
+      setShowAuthWarning(true);
+      return;
+    }
+    
     const result = await saveFurnitureState(placedFurniture);
     if (result.success) {
       toast.success("Design saved successfully!");
       localStorage.setItem('savedDesign', JSON.stringify(placedFurniture));
+    }
+  };
+
+  const downloadDesignFile = async () => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      toast.error("Please log in to download your design");
+      setShowAuthWarning(true);
+      return;
+    }
+    
+    const result = await downloadDesign(placedFurniture);
+    if (result.success) {
+      toast.success("Design prepared for download!");
+      
+      // Create and trigger download
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(placedFurniture));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "room-design.json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
     }
   };
 
@@ -215,6 +285,14 @@ const Designer3D = () => {
     setSelectedFurniture(null);
   }, []);
 
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const handleRegister = () => {
+    navigate('/register');
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -229,6 +307,28 @@ const Designer3D = () => {
             </p>
           </div>
         </section>
+
+        {/* Auth Warning */}
+        {showAuthWarning && (
+          <section className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 mx-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 text-amber-500">
+                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-amber-700">
+                  To save or download your designs, please log in or create an account.
+                </p>
+                <div className="mt-2 flex space-x-2">
+                  <Button size="sm" onClick={handleLogin} variant="outline">Log in</Button>
+                  <Button size="sm" onClick={handleRegister}>Register</Button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Canvas and Controls */}
         <section className="py-8">
@@ -283,14 +383,20 @@ const Designer3D = () => {
                     onClick={saveDesign}
                     className="w-full bg-green-600 hover:bg-green-700"
                   >
-                    Save Design
+                    <Save className="mr-2 h-4 w-4" /> Save Design
                   </Button>
                   <Button
                     onClick={loadDesign}
                     variant="outline"
                     className="w-full border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white"
                   >
-                    Load Design
+                    <Cloud className="mr-2 h-4 w-4" /> Load Design
+                  </Button>
+                  <Button
+                    onClick={downloadDesignFile}
+                    className="w-full bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Download className="mr-2 h-4 w-4" /> Download Design
                   </Button>
                 </div>
               </div>
@@ -302,29 +408,48 @@ const Designer3D = () => {
                   camera={{ position: [10, 10, 10], fov: 50 }}
                   onClick={deselectAll}
                 >
-                  <ambientLight intensity={0.5} />
-                  <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} castShadow />
-                  <pointLight position={[-10, -10, -10]} />
+                  <ambientLight intensity={0.3} />
+                  <spotLight 
+                    position={[0, 10, 10]} 
+                    angle={0.3} 
+                    penumbra={1} 
+                    intensity={1} 
+                    castShadow 
+                    shadow-mapSize={[2048, 2048]}
+                  />
+                  <pointLight position={[-10, -10, -10]} intensity={0.5} />
                   
                   <Room />
                   
-                  {placedFurniture.map((item) => (
-                    <FurnitureWithControls
-                      key={item.id}
-                      item={item}
-                      isSelected={selectedFurniture === item.id}
-                      onSelect={setSelectedFurniture}
-                      onPositionChange={updateFurniturePosition}
-                    />
-                  ))}
+                  <group>
+                    {placedFurniture.map((item) => (
+                      <FurnitureWithControls
+                        key={item.id}
+                        item={item}
+                        isSelected={selectedFurniture === item.id}
+                        onSelect={setSelectedFurniture}
+                        onPositionChange={updateFurniturePosition}
+                      />
+                    ))}
+                  </group>
                   
                   <OrbitControls 
                     enablePan={true} 
                     enableZoom={true} 
                     enableRotate={true} 
                     enabled={selectedFurniture === null}
+                    maxPolarAngle={Math.PI / 2}
                   />
+                  
                   <Environment preset="apartment" />
+                  <ContactShadows 
+                    position={[0, 0, 0]} 
+                    opacity={0.4} 
+                    scale={10} 
+                    blur={1.5} 
+                    far={10}
+                  />
+                  <Sky distance={450000} turbidity={8} rayleigh={6} mieCoefficient={0.005} mieDirectionalG={0.8} />
                 </Canvas>
               </div>
             </div>
@@ -340,6 +465,7 @@ const Designer3D = () => {
                 <li>Click and drag in the 3D view to rotate the camera (when no item is selected)</li>
                 <li>Use the scroll wheel to zoom in and out</li>
                 <li>Save your design to come back to it later</li>
+                <li>Download your design as a file to share or import later</li>
               </ul>
             </div>
           </div>
