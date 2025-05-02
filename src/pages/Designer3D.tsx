@@ -1,5 +1,6 @@
+
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, TransformControls, Sky, Bounds, SoftShadows, ContactShadows } from '@react-three/drei';
 import { Button } from "@/components/ui/button";
@@ -10,23 +11,41 @@ import { MoveHorizontal, MoveVertical, Trash2, Download, Save, Cloud } from "luc
 import { transformObject, saveFurnitureState, downloadDesign } from '../services/threeDService';
 import { getCurrentUser } from '@/utils/authUtils';
 
-// Enable better shadows for more realistic rendering
-// SoftShadows() should be called inside the Canvas component, so removing this.
-
 // A simple room model with enhanced realism
-function Room() {
+function Room({ roomType = 'living-room' }) {
+  // Adjust the room appearance based on room type
+  const getWallColor = () => {
+    switch (roomType) {
+      case 'kitchen': return "#f0f0f0";
+      case 'bedroom': return "#f5f2ea";
+      case 'hall': return "#e8e8e8";
+      case 'living-room':
+      default: return "#ffffff";
+    }
+  };
+  
+  const getFloorColor = () => {
+    switch (roomType) {
+      case 'kitchen': return "#d2cbc2";
+      case 'bedroom': return "#c09a6b";
+      case 'hall': return "#9c7b54";
+      case 'living-room':
+      default: return "#f8f8f8";
+    }
+  };
+
   return (
     <group>
       {/* Floor */}
       <mesh receiveShadow castShadow position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color="#f8f8f8" roughness={0.8} metalness={0.2} />
+        <meshStandardMaterial color={getFloorColor()} roughness={0.8} metalness={0.2} />
       </mesh>
       
       {/* Back Wall */}
       <mesh receiveShadow position={[0, 5, -5]}>
         <boxGeometry args={[10, 10, 0.1]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.75} />
+        <meshStandardMaterial color={getWallColor()} roughness={0.75} />
       </mesh>
       
       {/* Left Wall */}
@@ -56,6 +75,44 @@ function Room() {
         <boxGeometry args={[0.1, 0.5, 10]} />
         <meshStandardMaterial color="#d0d0d0" />
       </mesh>
+      
+      {roomType === 'kitchen' && (
+        <>
+          {/* Basic kitchen counter */}
+          <mesh position={[0, 1, -4.5]} castShadow receiveShadow>
+            <boxGeometry args={[8, 1, 1]} />
+            <meshStandardMaterial color="#b0b0b0" roughness={0.6} />
+          </mesh>
+          
+          {/* Kitchen sink */}
+          <mesh position={[2, 1.55, -4.5]} castShadow receiveShadow>
+            <boxGeometry args={[1.5, 0.1, 0.8]} />
+            <meshStandardMaterial color="#d8d8d8" roughness={0.3} metalness={0.8} />
+          </mesh>
+        </>
+      )}
+      
+      {roomType === 'bedroom' && (
+        <>
+          {/* Simple bed frame */}
+          <mesh position={[0, 0.3, -3]} castShadow receiveShadow>
+            <boxGeometry args={[4, 0.6, 6]} />
+            <meshStandardMaterial color="#8b4513" roughness={0.7} />
+          </mesh>
+          
+          {/* Mattress */}
+          <mesh position={[0, 0.75, -3]} castShadow receiveShadow>
+            <boxGeometry args={[3.8, 0.5, 5.8]} />
+            <meshStandardMaterial color="#f5f5dc" roughness={0.5} />
+          </mesh>
+          
+          {/* Pillow */}
+          <mesh position={[0, 1.1, -0.8]} castShadow receiveShadow>
+            <boxGeometry args={[3, 0.3, 1]} />
+            <meshStandardMaterial color="white" roughness={0.3} />
+          </mesh>
+        </>
+      )}
     </group>
   );
 }
@@ -170,23 +227,56 @@ function FurnitureWithControls({
 }
 
 // List of furniture options
-const furnitureOptions: FurnitureItem[] = [
-  { id: 1, name: "Sofa", type: "cube", color: "#8b4513", size: [3, 1, 1.5] },
-  { id: 2, name: "Coffee Table", type: "cube", color: "#d2b48c", size: [2, 0.5, 1] },
-  { id: 3, name: "Dining Table", type: "cube", color: "#a0522d", size: [2.5, 0.8, 1.5] },
-  { id: 4, name: "Chair", type: "cube", color: "#deb887", size: [0.8, 1.2, 0.8] },
-  { id: 5, name: "Plant", type: "cylinder", color: "#228b22", size: [0.5, 1.5, 0.5] },
-  { id: 6, name: "Bookshelf", type: "cube", color: "#cd853f", size: [2, 3, 0.8] }
-];
+const furnitureOptions: Record<string, FurnitureItem[]> = {
+  'living-room': [
+    { id: 1, name: "Sofa", type: "cube", color: "#8b4513", size: [3, 1, 1.5] },
+    { id: 2, name: "Coffee Table", type: "cube", color: "#d2b48c", size: [2, 0.5, 1] },
+    { id: 3, name: "Bookshelf", type: "cube", color: "#cd853f", size: [2, 3, 0.8] },
+    { id: 4, name: "Armchair", type: "cube", color: "#deb887", size: [1.2, 1, 1.2] },
+    { id: 5, name: "Floor Lamp", type: "cylinder", color: "#228b22", size: [0.3, 2.5, 0.3] }
+  ],
+  'kitchen': [
+    { id: 1, name: "Dining Table", type: "cube", color: "#a0522d", size: [2.5, 0.8, 1.5] },
+    { id: 2, name: "Chair", type: "cube", color: "#deb887", size: [0.8, 1.2, 0.8] },
+    { id: 3, name: "Kitchen Island", type: "cube", color: "#b0b0b0", size: [2, 1, 1.5] },
+    { id: 4, name: "Stool", type: "cylinder", color: "#8b4513", size: [0.4, 0.8, 0.4] },
+    { id: 5, name: "Cabinet", type: "cube", color: "#d2b48c", size: [1.5, 1.8, 0.6] }
+  ],
+  'bedroom': [
+    { id: 1, name: "Nightstand", type: "cube", color: "#cd853f", size: [1, 0.8, 1] },
+    { id: 2, name: "Dresser", type: "cube", color: "#8b4513", size: [2, 1.2, 0.8] },
+    { id: 3, name: "Chair", type: "cube", color: "#deb887", size: [0.8, 1.2, 0.8] },
+    { id: 4, name: "Table Lamp", type: "cylinder", color: "#f5f5dc", size: [0.4, 0.6, 0.4] },
+    { id: 5, name: "Wardrobe", type: "cube", color: "#cd853f", size: [2, 4, 1] }
+  ],
+  'hall': [
+    { id: 1, name: "Console Table", type: "cube", color: "#a0522d", size: [2, 0.8, 0.6] },
+    { id: 2, name: "Mirror", type: "cube", color: "#c0c0c0", size: [1.5, 2, 0.1] },
+    { id: 3, name: "Coat Rack", type: "cylinder", color: "#8b4513", size: [0.3, 2, 0.3] },
+    { id: 4, name: "Bench", type: "cube", color: "#deb887", size: [2, 0.5, 0.8] },
+    { id: 5, name: "Small Plant", type: "cylinder", color: "#228b22", size: [0.4, 1, 0.4] }
+  ]
+};
 
 // Color options for furniture
 const colorOptions = ["#8b4513", "#d2b48c", "#a0522d", "#deb887", "#228b22", "#cd853f", "#f5f5dc", "#b22222"];
 
 const Designer3D = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [placedFurniture, setPlacedFurniture] = useState<PlacedFurnitureItem[]>([]);
   const [selectedFurniture, setSelectedFurniture] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("#8b4513");
+  const [roomType, setRoomType] = useState<string>('living-room');
+  
+  // Get room type from URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const room = params.get('room');
+    if (room && ['living-room', 'kitchen', 'bedroom', 'hall'].includes(room)) {
+      setRoomType(room);
+    }
+  }, [location]);
   
   // Check if user is logged in and redirect if not
   useEffect(() => {
@@ -235,7 +325,7 @@ const Designer3D = () => {
     const result = await saveFurnitureState(placedFurniture);
     if (result.success) {
       toast.success("Design saved successfully!");
-      localStorage.setItem('savedDesign', JSON.stringify(placedFurniture));
+      localStorage.setItem(`savedDesign-${roomType}`, JSON.stringify(placedFurniture));
     }
   };
 
@@ -254,7 +344,7 @@ const Designer3D = () => {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(placedFurniture));
       const downloadAnchorNode = document.createElement('a');
       downloadAnchorNode.setAttribute("href", dataStr);
-      downloadAnchorNode.setAttribute("download", "room-design.json");
+      downloadAnchorNode.setAttribute("download", `${roomType}-design.json`);
       document.body.appendChild(downloadAnchorNode);
       downloadAnchorNode.click();
       downloadAnchorNode.remove();
@@ -262,7 +352,7 @@ const Designer3D = () => {
   };
 
   const loadDesign = () => {
-    const savedDesign = localStorage.getItem('savedDesign');
+    const savedDesign = localStorage.getItem(`savedDesign-${roomType}`);
     if (savedDesign) {
       const parsedDesign = JSON.parse(savedDesign) as PlacedFurnitureItem[];
       // Ensure all loaded furniture items have the correct types for size and position
@@ -282,6 +372,20 @@ const Designer3D = () => {
     setSelectedFurniture(null);
   }, []);
 
+  const getCurrentRoomFurniture = () => {
+    return furnitureOptions[roomType] || furnitureOptions['living-room'];
+  };
+
+  const getRoomTitle = () => {
+    switch (roomType) {
+      case 'kitchen': return "Kitchen";
+      case 'bedroom': return "Bedroom";
+      case 'hall': return "Hall";
+      case 'living-room':
+      default: return "Living Room";
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -290,10 +394,40 @@ const Designer3D = () => {
         {/* Hero Section */}
         <section className="py-8 bg-gray-50">
           <div className="container mx-auto px-6">
-            <h1 className="text-3xl font-bold text-interior-navy mb-4">3D Interior Designer</h1>
+            <h1 className="text-3xl font-bold text-interior-navy mb-4">3D {getRoomTitle()} Designer</h1>
             <p className="text-gray-700 mb-4">
-              Design your dream space in real-time with our 3D interior designer.
+              Design your dream {roomType.replace('-', ' ')} in real-time with our 3D interior designer.
             </p>
+            <div className="flex gap-2 overflow-x-auto py-2">
+              <Button
+                variant={roomType === 'living-room' ? "default" : "outline"}
+                className={roomType === 'living-room' ? "bg-interior-navy" : "border-interior-navy text-interior-navy"}
+                onClick={() => navigate('/3d-designer?room=living-room')}
+              >
+                Living Room
+              </Button>
+              <Button
+                variant={roomType === 'kitchen' ? "default" : "outline"}
+                className={roomType === 'kitchen' ? "bg-interior-navy" : "border-interior-navy text-interior-navy"}
+                onClick={() => navigate('/3d-designer?room=kitchen')}
+              >
+                Kitchen
+              </Button>
+              <Button
+                variant={roomType === 'bedroom' ? "default" : "outline"}
+                className={roomType === 'bedroom' ? "bg-interior-navy" : "border-interior-navy text-interior-navy"}
+                onClick={() => navigate('/3d-designer?room=bedroom')}
+              >
+                Bedroom
+              </Button>
+              <Button
+                variant={roomType === 'hall' ? "default" : "outline"}
+                className={roomType === 'hall' ? "bg-interior-navy" : "border-interior-navy text-interior-navy"}
+                onClick={() => navigate('/3d-designer?room=hall')}
+              >
+                Hall
+              </Button>
+            </div>
           </div>
         </section>
 
@@ -305,7 +439,7 @@ const Designer3D = () => {
               <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-semibold mb-4 text-interior-navy">Furniture</h2>
                 <div className="space-y-4">
-                  {furnitureOptions.map((option) => (
+                  {getCurrentRoomFurniture().map((option) => (
                     <Button
                       key={option.id}
                       onClick={() => addFurniture(option)}
@@ -387,7 +521,7 @@ const Designer3D = () => {
                   />
                   <pointLight position={[-10, -10, -10]} intensity={0.5} />
                   
-                  <Room />
+                  <Room roomType={roomType} />
                   
                   <group>
                     {placedFurniture.map((item) => (
@@ -434,6 +568,7 @@ const Designer3D = () => {
                 <li>Use the scroll wheel to zoom in and out</li>
                 <li>Save your design to come back to it later</li>
                 <li>Download your design as a file to share or import later</li>
+                <li>Switch between different room types using the buttons at the top</li>
               </ul>
             </div>
           </div>

@@ -3,8 +3,17 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { getCurrentUser } from "@/utils/authUtils";
+import { useState, useEffect } from "react";
 
 const Bedroom = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  useEffect(() => {
+    const user = getCurrentUser();
+    setIsLoggedIn(!!user);
+  }, []);
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -25,6 +34,12 @@ const Bedroom = () => {
             <p className="text-xl mb-6 max-w-2xl mx-auto">
               Create a tranquil retreat with our beautiful bedroom designs.
             </p>
+            
+            <Link to={isLoggedIn ? "/3d-designer?room=bedroom" : "/login?redirect=3d-designer&room=bedroom"}>
+              <Button size="lg" className="bg-interior-gold hover:bg-yellow-600 text-black font-semibold">
+                Try 3D Design Now
+              </Button>
+            </Link>
           </div>
         </section>
         
@@ -56,9 +71,9 @@ const Bedroom = () => {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button className="bg-interior-navy hover:bg-blue-900">Book a Consultation</Button>
-                  <Link to="/register">
+                  <Link to={isLoggedIn ? "/3d-designer?room=bedroom" : "/login?redirect=3d-designer&room=bedroom"}>
                     <Button variant="outline" className="border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white">
-                      Create Account
+                      Try for Free
                     </Button>
                   </Link>
                 </div>
