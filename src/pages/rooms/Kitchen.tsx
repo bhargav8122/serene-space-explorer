@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { getCurrentUser } from "@/utils/authUtils";
 import { useState, useEffect } from "react";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
 
 const Kitchen = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -56,7 +63,6 @@ const Kitchen = () => {
                   From sleek contemporary designs to warm traditional styles, we tailor each kitchen to reflect your personal taste while maximizing the available space.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button className="bg-interior-navy hover:bg-blue-900">Book a Consultation</Button>
                   <Link to={isLoggedIn ? "/3d-designer?room=kitchen" : "/login?redirect=3d-designer&room=kitchen"}>
                     <Button variant="outline" className="border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white">
                       Try for Free
@@ -110,27 +116,77 @@ const Kitchen = () => {
           </div>
         </section>
         
-        {/* Gallery Section */}
+        {/* Photo Album Section */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-interior-navy mb-12 text-center">Kitchen Gallery</h2>
+            <h2 className="text-3xl font-bold text-interior-navy mb-8 text-center">Kitchen Design Gallery</h2>
+            <p className="text-gray-700 mb-8 text-center max-w-3xl mx-auto">
+              Explore our kitchen design portfolio to find inspiration for your next project.
+              These designs showcase different styles, layouts and features to help you create your dream kitchen.
+            </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <img 
-                src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=500&auto=format&fit=crop" 
-                alt="Kitchen Gallery 1" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?q=80&w=500&auto=format&fit=crop" 
-                alt="Kitchen Gallery 2" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=500&auto=format&fit=crop" 
-                alt="Kitchen Gallery 3" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
+            <div className="relative mx-auto max-w-5xl px-8">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Kitchen Design 1" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Contemporary White</h3>
+                      <p className="text-sm text-gray-600">Sleek design with clean lines and minimalist hardware</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1565538810643-b5bdb714032a?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Kitchen Design 2" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Industrial Modern</h3>
+                      <p className="text-sm text-gray-600">Metal accents and open shelving create an urban feel</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Kitchen Design 3" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Classic Farmhouse</h3>
+                      <p className="text-sm text-gray-600">Traditional elements with modern functionality</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1600607688969-a5bfcd646154?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Kitchen Design 4" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Luxury Open Concept</h3>
+                      <p className="text-sm text-gray-600">High-end finishes with integrated dining and living areas</p>
+                    </div>
+                  </CarouselItem>
+                </CarouselContent>
+                <CarouselPrevious className="left-0 lg:-left-12" />
+                <CarouselNext className="right-0 lg:-right-12" />
+              </Carousel>
             </div>
           </div>
         </section>

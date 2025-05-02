@@ -3,8 +3,24 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getCurrentUser } from "@/utils/authUtils";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
 
 const MasterBedroom = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  useEffect(() => {
+    const user = getCurrentUser();
+    setIsLoggedIn(!!user);
+  }, []);
+  
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -15,7 +31,7 @@ const MasterBedroom = () => {
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ 
-              backgroundImage: "url('https://images.unsplash.com/photo-1617098474210-ad7a700d8c49?q=80&w=1480&auto=format&fit=crop')",
+              backgroundImage: "url('https://images.unsplash.com/photo-1616594039964-ae9021a400a0?q=80&w=1480&auto=format&fit=crop')",
               filter: "brightness(0.7)"
             }}
           ></div>
@@ -25,7 +41,7 @@ const MasterBedroom = () => {
             <p className="text-xl mb-6 max-w-2xl mx-auto">
               Luxurious master bedroom designs for your personal sanctuary.
             </p>
-            <Link to="/3d-designer">
+            <Link to={isLoggedIn ? "/3d-designer?room=bedroom" : "/login?redirect=3d-designer&room=bedroom"}>
               <Button className="bg-primary hover:bg-primary/90 text-lg">
                 Design Your Own in 3D
               </Button>
@@ -46,13 +62,12 @@ const MasterBedroom = () => {
                   From spacious layouts to custom storage solutions, every element is thoughtfully designed to enhance your comfort and reflect your personal style.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button className="bg-interior-navy hover:bg-blue-900">Book a Consultation</Button>
                   <Link to="/register">
                     <Button variant="outline" className="border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white">
                       Create Account
                     </Button>
                   </Link>
-                  <Link to="/3d-designer">
+                  <Link to={isLoggedIn ? "/3d-designer?room=bedroom" : "/login?redirect=3d-designer&room=bedroom"}>
                     <Button variant="secondary" className="bg-purple-600 hover:bg-purple-700 text-white">
                       Try 3D Designer
                     </Button>
@@ -105,27 +120,77 @@ const MasterBedroom = () => {
           </div>
         </section>
         
-        {/* Gallery Section */}
+        {/* Photo Album Section */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-interior-navy mb-12 text-center">Master Bedroom Gallery</h2>
+            <h2 className="text-3xl font-bold text-interior-navy mb-8 text-center">Master Bedroom Design Gallery</h2>
+            <p className="text-gray-700 mb-8 text-center max-w-3xl mx-auto">
+              Browse through our curated collection of master bedroom designs to inspire your next project.
+              These real-world examples showcase various styles and layouts to help you visualize possibilities for your space.
+            </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <img 
-                src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?q=80&w=500&auto=format&fit=crop" 
-                alt="Master Bedroom Gallery 1" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1541123437800-1bb1317badc2?q=80&w=500&auto=format&fit=crop" 
-                alt="Master Bedroom Gallery 2" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1615874694520-474822394e73?q=80&w=500&auto=format&fit=crop" 
-                alt="Master Bedroom Gallery 3" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
+            <div className="relative mx-auto max-w-5xl px-8">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Master Bedroom Design 1" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Contemporary Elegance</h3>
+                      <p className="text-sm text-gray-600">A modern master suite with clean lines and neutral tones</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1541123437800-1bb1317badc2?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Master Bedroom Design 2" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Classic Luxury</h3>
+                      <p className="text-sm text-gray-600">Traditional styling with luxurious details and warm colors</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1615874694520-474822394e73?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Master Bedroom Design 3" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Scandinavian Minimalism</h3>
+                      <p className="text-sm text-gray-600">Simple, functional design with light wood and white accents</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1616047006789-b7af5afb8c20?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Master Bedroom Design 4" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Urban Chic</h3>
+                      <p className="text-sm text-gray-600">Industrial-inspired design with contemporary furniture</p>
+                    </div>
+                  </CarouselItem>
+                </CarouselContent>
+                <CarouselPrevious className="left-0 lg:-left-12" />
+                <CarouselNext className="right-0 lg:-right-12" />
+              </Carousel>
             </div>
           </div>
         </section>

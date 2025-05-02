@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { getCurrentUser } from "@/utils/authUtils";
 import { useState, useEffect } from "react";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
 
 const Hall = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -70,7 +77,6 @@ const Hall = () => {
                   From elegant foyers to practical mudrooms, we design halls that balance style with functionality while reflecting your home's overall design aesthetic.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button className="bg-interior-navy hover:bg-blue-900">Book a Consultation</Button>
                   <Link to={isLoggedIn ? "/3d-designer?room=hall" : "/login?redirect=3d-designer&room=hall"}>
                     <Button variant="outline" className="border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white">
                       Try for Free
@@ -112,27 +118,77 @@ const Hall = () => {
           </div>
         </section>
         
-        {/* Gallery Section */}
+        {/* Photo Album Section */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-interior-navy mb-12 text-center">Hall Gallery</h2>
+            <h2 className="text-3xl font-bold text-interior-navy mb-8 text-center">Hall Design Gallery</h2>
+            <p className="text-gray-700 mb-8 text-center max-w-3xl mx-auto">
+              Explore our collection of hall and entryway designs to make a great first impression.
+              These designs showcase different styles and solutions to create welcoming entrances.
+            </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <img 
-                src="https://images.unsplash.com/photo-1560448205-4d9b3e6bb6db?q=80&w=500&auto=format&fit=crop" 
-                alt="Hall Gallery 1" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=500&auto=format&fit=crop" 
-                alt="Hall Gallery 2" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1507089947368-19c1da9775ae?q=80&w=500&auto=format&fit=crop" 
-                alt="Hall Gallery 3" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
+            <div className="relative mx-auto max-w-5xl px-8">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1560448205-4d9b3e6bb6db?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Hall Design 1" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Modern Minimalist</h3>
+                      <p className="text-sm text-gray-600">Clean lines and functional storage for sleek entryways</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Hall Design 2" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Classic Elegance</h3>
+                      <p className="text-sm text-gray-600">Traditional features with sophisticated details</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1507089947368-19c1da9775ae?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Hall Design 3" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Practical Entryway</h3>
+                      <p className="text-sm text-gray-600">Functional spaces with organized storage solutions</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1581858726788-75bc0f6a952d?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Hall Design 4" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Contemporary Foyer</h3>
+                      <p className="text-sm text-gray-600">Stylish entrance with statement décor elements</p>
+                    </div>
+                  </CarouselItem>
+                </CarouselContent>
+                <CarouselPrevious className="left-0 lg:-left-12" />
+                <CarouselNext className="right-0 lg:-right-12" />
+              </Carousel>
             </div>
           </div>
         </section>

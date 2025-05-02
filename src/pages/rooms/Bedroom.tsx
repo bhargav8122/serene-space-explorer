@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { getCurrentUser } from "@/utils/authUtils";
 import { useState, useEffect } from "react";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem, 
+  CarouselNext, 
+  CarouselPrevious 
+} from "@/components/ui/carousel";
 
 const Bedroom = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -70,7 +77,6 @@ const Bedroom = () => {
                   From minimalist designs to cozy retreats, we design bedrooms that reflect your personal style while optimizing the space for comfort.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Button className="bg-interior-navy hover:bg-blue-900">Book a Consultation</Button>
                   <Link to={isLoggedIn ? "/3d-designer?room=bedroom" : "/login?redirect=3d-designer&room=bedroom"}>
                     <Button variant="outline" className="border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white">
                       Try for Free
@@ -112,27 +118,77 @@ const Bedroom = () => {
           </div>
         </section>
         
-        {/* Gallery Section */}
+        {/* Photo Album Section */}
         <section className="py-16 bg-white">
           <div className="container mx-auto px-6">
-            <h2 className="text-3xl font-bold text-interior-navy mb-12 text-center">Bedroom Gallery</h2>
+            <h2 className="text-3xl font-bold text-interior-navy mb-8 text-center">Bedroom Design Gallery</h2>
+            <p className="text-gray-700 mb-8 text-center max-w-3xl mx-auto">
+              Browse our bedroom design gallery for inspiration. These designs showcase different styles,
+              color schemes and layouts to help you create your perfect bedroom sanctuary.
+            </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              <img 
-                src="https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?q=80&w=500&auto=format&fit=crop" 
-                alt="Bedroom Gallery 1" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1615529328331-f8917597711f?q=80&w=500&auto=format&fit=crop" 
-                alt="Bedroom Gallery 2" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
-              <img 
-                src="https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?q=80&w=500&auto=format&fit=crop" 
-                alt="Bedroom Gallery 3" 
-                className="rounded-lg shadow-md h-64 w-full object-cover hover:opacity-90 transition-opacity"
-              />
+            <div className="relative mx-auto max-w-5xl px-8">
+              <Carousel className="w-full">
+                <CarouselContent>
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Bedroom Design 1" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Serene Minimalism</h3>
+                      <p className="text-sm text-gray-600">Clean lines and soft neutrals create a peaceful retreat</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1615529328331-f8917597711f?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Bedroom Design 2" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Cozy Rustic</h3>
+                      <p className="text-sm text-gray-600">Natural materials and warm tones for a comfortable ambiance</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Bedroom Design 3" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Contemporary Elegance</h3>
+                      <p className="text-sm text-gray-600">Modern styling with luxurious touches for sophisticated comfort</p>
+                    </div>
+                  </CarouselItem>
+                  
+                  <CarouselItem>
+                    <div className="p-1">
+                      <div className="overflow-hidden rounded-xl">
+                        <img 
+                          src="https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?q=80&w=1200&auto=format&fit=crop" 
+                          alt="Bedroom Design 4" 
+                          className="h-[500px] w-full object-cover transition-transform hover:scale-105"
+                        />
+                      </div>
+                      <h3 className="mt-3 text-lg font-medium text-interior-navy">Urban Chic</h3>
+                      <p className="text-sm text-gray-600">Bold accents and stylish furnishings for a modern bedroom</p>
+                    </div>
+                  </CarouselItem>
+                </CarouselContent>
+                <CarouselPrevious className="left-0 lg:-left-12" />
+                <CarouselNext className="right-0 lg:-right-12" />
+              </Carousel>
             </div>
           </div>
         </section>
