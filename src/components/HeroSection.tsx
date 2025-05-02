@@ -21,9 +21,9 @@ const HeroSection = () => {
           Discover beautiful interior designs that transform your house into a home.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
-          <Link to="/register">
+          <Link to="/3d-designer">
             <Button size="lg" className="bg-interior-gold hover:bg-yellow-600 text-black font-semibold">
-              Get Started
+              Try for Free
             </Button>
           </Link>
           <Link to="/kitchen">

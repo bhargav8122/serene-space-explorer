@@ -42,9 +42,9 @@ const LivingRoom = () => {
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Button className="bg-interior-navy hover:bg-blue-900">Book a Consultation</Button>
-                  <Link to="/register">
+                  <Link to="/3d-designer">
                     <Button variant="outline" className="border-interior-navy text-interior-navy hover:bg-interior-navy hover:text-white">
-                      Create Account
+                      Try for Free
                     </Button>
                   </Link>
                 </div>
