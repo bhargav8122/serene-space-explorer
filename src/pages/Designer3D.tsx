@@ -11,16 +11,17 @@ import { MoveHorizontal, MoveVertical, Trash2, Download, Save, Cloud } from "luc
 import { transformObject, saveFurnitureState, downloadDesign } from '../services/threeDService';
 import { getCurrentUser } from '@/utils/authUtils';
 
-// A simple room model with enhanced realism
+// A realistic room model with enhanced materials and lighting
 function Room({ roomType = 'living-room' }) {
-  // Adjust the room appearance based on room type
+  // Adjust the room appearance based on room type with more realistic colors
   const getWallColor = () => {
     switch (roomType) {
-      case 'kitchen': return "#f0f0f0";
+      case 'kitchen': return "#f2f2f2";
       case 'bedroom': return "#f5f2ea";
       case 'hall': return "#e8e8e8";
+      case 'master-bedroom': return "#e6e1d6";
       case 'living-room':
-      default: return "#ffffff";
+      default: return "#fbfbfb";
     }
   };
   
@@ -29,38 +30,39 @@ function Room({ roomType = 'living-room' }) {
       case 'kitchen': return "#d2cbc2";
       case 'bedroom': return "#c09a6b";
       case 'hall': return "#9c7b54";
+      case 'master-bedroom': return "#8b5a2b";
       case 'living-room':
-      default: return "#f8f8f8";
+      default: return "#d7cec7";
     }
   };
 
   return (
     <group>
-      {/* Floor */}
+      {/* Floor with enhanced material properties */}
       <mesh receiveShadow castShadow position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[10, 10]} />
-        <meshStandardMaterial color={getFloorColor()} roughness={0.8} metalness={0.2} />
+        <meshStandardMaterial color={getFloorColor()} roughness={0.7} metalness={0.2} />
       </mesh>
       
-      {/* Back Wall */}
+      {/* Back Wall with enhanced material */}
       <mesh receiveShadow position={[0, 5, -5]}>
         <boxGeometry args={[10, 10, 0.1]} />
-        <meshStandardMaterial color={getWallColor()} roughness={0.75} />
+        <meshStandardMaterial color={getWallColor()} roughness={0.65} />
       </mesh>
       
       {/* Left Wall */}
       <mesh receiveShadow position={[-5, 5, 0]}>
         <boxGeometry args={[0.1, 10, 10]} />
-        <meshStandardMaterial color="#e6e6e6" roughness={0.75} />
+        <meshStandardMaterial color="#e6e6e6" roughness={0.65} />
       </mesh>
       
       {/* Right Wall */}
       <mesh receiveShadow position={[5, 5, 0]}>
         <boxGeometry args={[0.1, 10, 10]} />
-        <meshStandardMaterial color="#e6e6e6" roughness={0.75} />
+        <meshStandardMaterial color="#e6e6e6" roughness={0.65} />
       </mesh>
       
-      {/* Baseboard */}
+      {/* Baseboards with enhanced details */}
       <mesh position={[0, 0.25, -4.95]} castShadow>
         <boxGeometry args={[10, 0.5, 0.1]} />
         <meshStandardMaterial color="#d0d0d0" />
@@ -76,22 +78,50 @@ function Room({ roomType = 'living-room' }) {
         <meshStandardMaterial color="#d0d0d0" />
       </mesh>
       
+      {/* Window for living-room */}
+      {roomType === 'living-room' && (
+        <group position={[0, 3.5, -4.9]}>
+          <mesh castShadow receiveShadow>
+            <boxGeometry args={[3, 2, 0.1]} />
+            <meshStandardMaterial color="#87CEEB" opacity={0.7} transparent={true} />
+          </mesh>
+          <mesh position={[0, 0, 0.1]} castShadow>
+            <boxGeometry args={[3.2, 2.2, 0.1]} />
+            <meshStandardMaterial color="#a0a0a0" />
+          </mesh>
+        </group>
+      )}
+      
+      {/* Kitchen-specific fixtures */}
       {roomType === 'kitchen' && (
         <>
-          {/* Basic kitchen counter */}
+          {/* Modern kitchen counter */}
           <mesh position={[0, 1, -4.5]} castShadow receiveShadow>
             <boxGeometry args={[8, 1, 1]} />
-            <meshStandardMaterial color="#b0b0b0" roughness={0.6} />
+            <meshStandardMaterial color="#EFEFEF" roughness={0.4} />
           </mesh>
           
           {/* Kitchen sink */}
           <mesh position={[2, 1.55, -4.5]} castShadow receiveShadow>
             <boxGeometry args={[1.5, 0.1, 0.8]} />
-            <meshStandardMaterial color="#d8d8d8" roughness={0.3} metalness={0.8} />
+            <meshStandardMaterial color="#C0C0C0" roughness={0.2} metalness={0.8} />
+          </mesh>
+          
+          {/* Kitchen cabinets */}
+          <mesh position={[-3, 1, -4.5]} castShadow receiveShadow>
+            <boxGeometry args={[2, 2, 0.8]} />
+            <meshStandardMaterial color="#EFEFEF" roughness={0.5} />
+          </mesh>
+          
+          {/* Kitchen island */}
+          <mesh position={[0, 1, -2]} castShadow receiveShadow>
+            <boxGeometry args={[3, 1, 2]} />
+            <meshStandardMaterial color="#EFEFEF" roughness={0.4} />
           </mesh>
         </>
       )}
       
+      {/* Bedroom-specific fixtures */}
       {roomType === 'bedroom' && (
         <>
           {/* Simple bed frame */}
@@ -106,10 +136,84 @@ function Room({ roomType = 'living-room' }) {
             <meshStandardMaterial color="#f5f5dc" roughness={0.5} />
           </mesh>
           
-          {/* Pillow */}
+          {/* Pillows */}
           <mesh position={[0, 1.1, -0.8]} castShadow receiveShadow>
             <boxGeometry args={[3, 0.3, 1]} />
             <meshStandardMaterial color="white" roughness={0.3} />
+          </mesh>
+          
+          {/* Nightstand */}
+          <mesh position={[2.5, 0.6, -0.8]} castShadow receiveShadow>
+            <boxGeometry args={[1, 1.2, 1]} />
+            <meshStandardMaterial color="#a0522d" roughness={0.6} />
+          </mesh>
+        </>
+      )}
+      
+      {/* Master bedroom-specific fixtures */}
+      {roomType === 'master-bedroom' && (
+        <>
+          {/* Larger bed frame */}
+          <mesh position={[0, 0.3, -3]} castShadow receiveShadow>
+            <boxGeometry args={[5, 0.6, 6]} />
+            <meshStandardMaterial color="#5d4037" roughness={0.7} />
+          </mesh>
+          
+          {/* Mattress */}
+          <mesh position={[0, 0.85, -3]} castShadow receiveShadow>
+            <boxGeometry args={[4.8, 0.7, 5.8]} />
+            <meshStandardMaterial color="#f5f5dc" roughness={0.4} />
+          </mesh>
+          
+          {/* Pillows */}
+          <mesh position={[0, 1.3, -0.8]} castShadow receiveShadow>
+            <boxGeometry args={[4, 0.4, 1]} />
+            <meshStandardMaterial color="white" roughness={0.3} />
+          </mesh>
+          
+          {/* Nightstands */}
+          <mesh position={[3, 0.7, -0.8]} castShadow receiveShadow>
+            <boxGeometry args={[1.2, 1.4, 1.2]} />
+            <meshStandardMaterial color="#5d4037" roughness={0.6} />
+          </mesh>
+          
+          <mesh position={[-3, 0.7, -0.8]} castShadow receiveShadow>
+            <boxGeometry args={[1.2, 1.4, 1.2]} />
+            <meshStandardMaterial color="#5d4037" roughness={0.6} />
+          </mesh>
+          
+          {/* Dresser */}
+          <mesh position={[-3, 1, -4.5]} castShadow receiveShadow>
+            <boxGeometry args={[2.5, 2, 0.8]} />
+            <meshStandardMaterial color="#5d4037" roughness={0.6} />
+          </mesh>
+        </>
+      )}
+      
+      {/* Hall-specific fixtures */}
+      {roomType === 'hall' && (
+        <>
+          {/* Console table */}
+          <mesh position={[0, 1, -4.5]} castShadow receiveShadow>
+            <boxGeometry args={[3, 0.8, 0.8]} />
+            <meshStandardMaterial color="#8b5a2b" roughness={0.6} />
+          </mesh>
+          
+          {/* Mirror */}
+          <mesh position={[0, 3, -4.9]} castShadow receiveShadow>
+            <boxGeometry args={[2.5, 3, 0.1]} />
+            <meshStandardMaterial color="#a0a0a0" roughness={0.2} metalness={0.5} />
+          </mesh>
+          
+          {/* Coat rack */}
+          <mesh position={[3.5, 2, -4.5]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.1, 0.1, 4, 8]} />
+            <meshStandardMaterial color="#8b4513" roughness={0.7} />
+          </mesh>
+          
+          <mesh position={[3.5, 3.8, -4.5]} castShadow receiveShadow>
+            <cylinderGeometry args={[0.6, 0.6, 0.1, 8]} rotation={[Math.PI / 2, 0, 0]} />
+            <meshStandardMaterial color="#8b4513" roughness={0.7} />
           </mesh>
         </>
       )}
@@ -123,18 +227,18 @@ interface FurnitureItem {
   name: string;
   type: string;
   color: string;
-  size: [number, number, number]; // Explicitly typed as tuple with 3 elements
+  size: [number, number, number]; 
 }
 
 interface PlacedFurnitureItem {
   id: number;
   type: string;
   color: string;
-  size: [number, number, number]; // Explicitly typed as tuple with 3 elements
+  size: [number, number, number];
   position: [number, number, number];
 }
 
-// A selectable and movable furniture component with enhanced materials
+// Enhanced furniture component with better materials and shadows
 function Furniture({ 
   position, 
   color, 
@@ -166,10 +270,11 @@ function Furniture({
     >
       {type === 'cube' && <boxGeometry args={size} />}
       {type === 'cylinder' && <cylinderGeometry args={[size[0], size[0], size[1], 32]} />}
+      {type === 'sphere' && <sphereGeometry args={[size[0], 32, 32]} />}
       <meshStandardMaterial 
         color={color} 
-        roughness={0.7}
-        metalness={0.2}
+        roughness={0.65}
+        metalness={0.25}
         emissive={isSelected ? '#ff0000' : undefined}
         emissiveIntensity={isSelected ? 0.2 : 0}
       />
@@ -226,54 +331,91 @@ function FurnitureWithControls({
   );
 }
 
-// List of furniture options
+// Enhanced furniture options with more realistic items for each room type
 const furnitureOptions: Record<string, FurnitureItem[]> = {
   'living-room': [
-    { id: 1, name: "Sofa", type: "cube", color: "#8b4513", size: [3, 1, 1.5] },
-    { id: 2, name: "Coffee Table", type: "cube", color: "#d2b48c", size: [2, 0.5, 1] },
-    { id: 3, name: "Bookshelf", type: "cube", color: "#cd853f", size: [2, 3, 0.8] },
-    { id: 4, name: "Armchair", type: "cube", color: "#deb887", size: [1.2, 1, 1.2] },
-    { id: 5, name: "Floor Lamp", type: "cylinder", color: "#228b22", size: [0.3, 2.5, 0.3] }
+    { id: 1, name: "Modern Sofa", type: "cube", color: "#607d8b", size: [3, 1, 1.5] },
+    { id: 2, name: "Glass Coffee Table", type: "cube", color: "#b0bec5", size: [2, 0.5, 1] },
+    { id: 3, name: "Bookshelf", type: "cube", color: "#795548", size: [2, 3, 0.8] },
+    { id: 4, name: "Armchair", type: "cube", color: "#546e7a", size: [1.2, 1, 1.2] },
+    { id: 5, name: "Floor Lamp", type: "cylinder", color: "#9e9e9e", size: [0.3, 2.5, 0.3] },
+    { id: 6, name: "TV Stand", type: "cube", color: "#6d4c41", size: [3, 0.8, 0.6] },
+    { id: 7, name: "Area Rug", type: "cube", color: "#b39ddb", size: [4, 0.05, 3] },
+    { id: 8, name: "Side Table", type: "cylinder", color: "#a1887f", size: [0.5, 0.6, 0.5] }
   ],
   'kitchen': [
-    { id: 1, name: "Dining Table", type: "cube", color: "#a0522d", size: [2.5, 0.8, 1.5] },
-    { id: 2, name: "Chair", type: "cube", color: "#deb887", size: [0.8, 1.2, 0.8] },
-    { id: 3, name: "Kitchen Island", type: "cube", color: "#b0b0b0", size: [2, 1, 1.5] },
-    { id: 4, name: "Stool", type: "cylinder", color: "#8b4513", size: [0.4, 0.8, 0.4] },
-    { id: 5, name: "Cabinet", type: "cube", color: "#d2b48c", size: [1.5, 1.8, 0.6] }
+    { id: 1, name: "Dining Table", type: "cube", color: "#8d6e63", size: [2.5, 0.8, 1.5] },
+    { id: 2, name: "Dining Chair", type: "cube", color: "#a1887f", size: [0.6, 1, 0.6] },
+    { id: 3, name: "Kitchen Island", type: "cube", color: "#90a4ae", size: [2, 1, 1.5] },
+    { id: 4, name: "Bar Stool", type: "cylinder", color: "#616161", size: [0.4, 0.8, 0.4] },
+    { id: 5, name: "Cabinet", type: "cube", color: "#eceff1", size: [1.5, 1.8, 0.6] },
+    { id: 6, name: "Refrigerator", type: "cube", color: "#cfd8dc", size: [1.2, 2.5, 0.8] },
+    { id: 7, name: "Pendant Light", type: "cylinder", color: "#ffab91", size: [0.3, 0.4, 0.3] },
+    { id: 8, name: "Microwave", type: "cube", color: "#616161", size: [0.6, 0.4, 0.5] }
   ],
   'bedroom': [
-    { id: 1, name: "Nightstand", type: "cube", color: "#cd853f", size: [1, 0.8, 1] },
-    { id: 2, name: "Dresser", type: "cube", color: "#8b4513", size: [2, 1.2, 0.8] },
-    { id: 3, name: "Chair", type: "cube", color: "#deb887", size: [0.8, 1.2, 0.8] },
-    { id: 4, name: "Table Lamp", type: "cylinder", color: "#f5f5dc", size: [0.4, 0.6, 0.4] },
-    { id: 5, name: "Wardrobe", type: "cube", color: "#cd853f", size: [2, 4, 1] }
+    { id: 1, name: "Nightstand", type: "cube", color: "#a1887f", size: [1, 0.8, 1] },
+    { id: 2, name: "Dresser", type: "cube", color: "#8d6e63", size: [2, 1.2, 0.8] },
+    { id: 3, name: "Accent Chair", type: "cube", color: "#90caf9", size: [0.8, 1, 0.8] },
+    { id: 4, name: "Table Lamp", type: "cylinder", color: "#e0e0e0", size: [0.3, 0.6, 0.3] },
+    { id: 5, name: "Wardrobe", type: "cube", color: "#8d6e63", size: [2, 4, 1] },
+    { id: 6, name: "Vanity Table", type: "cube", color: "#bcaaa4", size: [1.5, 1.2, 0.6] },
+    { id: 7, name: "Ottoman", type: "cube", color: "#b39ddb", size: [0.8, 0.4, 0.8] },
+    { id: 8, name: "Floor Mirror", type: "cube", color: "#b0bec5", size: [1, 2, 0.1] }
+  ],
+  'master-bedroom': [
+    { id: 1, name: "King Bed Frame", type: "cube", color: "#5d4037", size: [3.5, 0.5, 2.2] },
+    { id: 2, name: "Large Dresser", type: "cube", color: "#5d4037", size: [3, 1.2, 0.8] },
+    { id: 3, name: "Elegant Chair", type: "cube", color: "#d1c4e9", size: [1, 1.2, 1] },
+    { id: 4, name: "Floor Lamp", type: "cylinder", color: "#9e9e9e", size: [0.3, 2, 0.3] },
+    { id: 5, name: "Walk-in Closet", type: "cube", color: "#6d4c41", size: [2.5, 3, 1] },
+    { id: 6, name: "Chaise Lounge", type: "cube", color: "#9fa8da", size: [2, 0.8, 0.8] },
+    { id: 7, name: "Area Rug", type: "cube", color: "#ce93d8", size: [3, 0.05, 2.5] },
+    { id: 8, name: "TV Console", type: "cube", color: "#6d4c41", size: [2, 0.6, 0.5] }
   ],
   'hall': [
-    { id: 1, name: "Console Table", type: "cube", color: "#a0522d", size: [2, 0.8, 0.6] },
-    { id: 2, name: "Mirror", type: "cube", color: "#c0c0c0", size: [1.5, 2, 0.1] },
-    { id: 3, name: "Coat Rack", type: "cylinder", color: "#8b4513", size: [0.3, 2, 0.3] },
-    { id: 4, name: "Bench", type: "cube", color: "#deb887", size: [2, 0.5, 0.8] },
-    { id: 5, name: "Small Plant", type: "cylinder", color: "#228b22", size: [0.4, 1, 0.4] }
+    { id: 1, name: "Console Table", type: "cube", color: "#8d6e63", size: [2, 0.8, 0.6] },
+    { id: 2, name: "Wall Mirror", type: "cube", color: "#b0bec5", size: [1.5, 2, 0.1] },
+    { id: 3, name: "Coat Rack", type: "cylinder", color: "#795548", size: [0.3, 2, 0.3] },
+    { id: 4, name: "Bench", type: "cube", color: "#a1887f", size: [2, 0.5, 0.8] },
+    { id: 5, name: "Floor Plant", type: "cylinder", color: "#558b2f", size: [0.4, 1, 0.4] },
+    { id: 6, name: "Pendant Light", type: "sphere", color: "#ffcc80", size: [0.4, 16, 16] },
+    { id: 7, name: "Runner Rug", type: "cube", color: "#9fa8da", size: [1, 0.05, 3] },
+    { id: 8, name: "Wall Sconce", type: "cylinder", color: "#ffcc80", size: [0.2, 0.4, 0.2] }
   ]
 };
 
-// Color options for furniture
-const colorOptions = ["#8b4513", "#d2b48c", "#a0522d", "#deb887", "#228b22", "#cd853f", "#f5f5dc", "#b22222"];
+// Modern color palette for furniture
+const colorOptions = [
+  "#455a64", // Dark blue-gray
+  "#607d8b", // Blue-gray
+  "#90a4ae", // Light blue-gray
+  "#bcaaa4", // Taupe
+  "#8d6e63", // Brown
+  "#5d4037", // Dark brown
+  "#7986cb", // Blue-lavender
+  "#9fa8da", // Lavender
+  "#ffcc80", // Light orange
+  "#ffab91", // Peach
+  "#a5d6a7", // Light green
+  "#81c784", // Green
+  "#fff59d", // Light yellow
+  "#e6ee9c"  // Lime
+];
 
 const Designer3D = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [placedFurniture, setPlacedFurniture] = useState<PlacedFurnitureItem[]>([]);
   const [selectedFurniture, setSelectedFurniture] = useState<number | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string>("#8b4513");
+  const [selectedColor, setSelectedColor] = useState<string>("#607d8b");
   const [roomType, setRoomType] = useState<string>('living-room');
   
   // Get room type from URL parameters
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const room = params.get('room');
-    if (room && ['living-room', 'kitchen', 'bedroom', 'hall'].includes(room)) {
+    if (room && ['living-room', 'kitchen', 'bedroom', 'hall', 'master-bedroom'].includes(room)) {
       setRoomType(room);
     }
   }, [location]);
@@ -381,6 +523,7 @@ const Designer3D = () => {
       case 'kitchen': return "Kitchen";
       case 'bedroom': return "Bedroom";
       case 'hall': return "Hall";
+      case 'master-bedroom': return "Master Bedroom";
       case 'living-room':
       default: return "Living Room";
     }
@@ -396,7 +539,7 @@ const Designer3D = () => {
           <div className="container mx-auto px-6">
             <h1 className="text-3xl font-bold text-interior-navy mb-4">3D {getRoomTitle()} Designer</h1>
             <p className="text-gray-700 mb-4">
-              Design your dream {roomType.replace('-', ' ')} in real-time with our 3D interior designer.
+              Design your dream {roomType.replace(/-/g, ' ')} in real-time with our modern 3D interior designer.
             </p>
             <div className="flex gap-2 overflow-x-auto py-2">
               <Button
@@ -421,6 +564,13 @@ const Designer3D = () => {
                 Bedroom
               </Button>
               <Button
+                variant={roomType === 'master-bedroom' ? "default" : "outline"}
+                className={roomType === 'master-bedroom' ? "bg-interior-navy" : "border-interior-navy text-interior-navy"}
+                onClick={() => navigate('/3d-designer?room=master-bedroom')}
+              >
+                Master Bedroom
+              </Button>
+              <Button
                 variant={roomType === 'hall' ? "default" : "outline"}
                 className={roomType === 'hall' ? "bg-interior-navy" : "border-interior-navy text-interior-navy"}
                 onClick={() => navigate('/3d-designer?room=hall')}
@@ -438,7 +588,7 @@ const Designer3D = () => {
               {/* Furniture Controls */}
               <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-semibold mb-4 text-interior-navy">Furniture</h2>
-                <div className="space-y-4">
+                <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
                   {getCurrentRoomFurniture().map((option) => (
                     <Button
                       key={option.id}
@@ -451,7 +601,7 @@ const Designer3D = () => {
                 </div>
 
                 <h2 className="text-xl font-semibold my-4 text-interior-navy">Colors</h2>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-7 gap-2 mb-4">
                   {colorOptions.map((color) => (
                     <button
                       key={color}
@@ -510,12 +660,12 @@ const Designer3D = () => {
                   onClick={deselectAll}
                 >
                   <SoftShadows />
-                  <ambientLight intensity={0.3} />
+                  <ambientLight intensity={0.4} />
                   <spotLight 
                     position={[0, 10, 10]} 
                     angle={0.3} 
                     penumbra={1} 
-                    intensity={1} 
+                    intensity={1.5} 
                     castShadow 
                     shadow-mapSize={[2048, 2048]}
                   />
@@ -546,8 +696,8 @@ const Designer3D = () => {
                   <Environment preset="apartment" />
                   <ContactShadows 
                     position={[0, 0, 0]} 
-                    opacity={0.4} 
-                    scale={10} 
+                    opacity={0.5} 
+                    scale={12} 
                     blur={1.5} 
                     far={10}
                   />
@@ -559,7 +709,7 @@ const Designer3D = () => {
             <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-semibold mb-4 text-interior-navy">How to Use</h2>
               <ul className="list-disc list-inside space-y-2 text-gray-700">
-                <li>Click on furniture items from the menu to add them to your scene</li>
+                <li>Click on furniture items from the menu to add them to your room</li>
                 <li>Use the color picker to select different colors for your furniture</li>
                 <li>Click on any furniture item to select it - it will highlight in red</li>
                 <li>Use the arrow controls that appear to move the selected furniture</li>
@@ -567,8 +717,8 @@ const Designer3D = () => {
                 <li>Click and drag in the 3D view to rotate the camera (when no item is selected)</li>
                 <li>Use the scroll wheel to zoom in and out</li>
                 <li>Save your design to come back to it later</li>
-                <li>Download your design as a file to share or import later</li>
                 <li>Switch between different room types using the buttons at the top</li>
+                <li>Create a modern look using our designer-selected color palette</li>
               </ul>
             </div>
           </div>
