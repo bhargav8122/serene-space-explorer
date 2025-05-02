@@ -1,8 +1,7 @@
-
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment, TransformControls, Sky, Bounds, softShadows, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Environment, TransformControls, Sky, Bounds, SoftShadows, ContactShadows } from '@react-three/drei';
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -12,7 +11,7 @@ import { transformObject, saveFurnitureState, downloadDesign } from '../services
 import { getCurrentUser } from '@/utils/authUtils';
 
 // Enable better shadows for more realistic rendering
-softShadows();
+// SoftShadows() should be called inside the Canvas component, so removing this.
 
 // A simple room model with enhanced realism
 function Room() {
@@ -188,15 +187,15 @@ const Designer3D = () => {
   const [placedFurniture, setPlacedFurniture] = useState<PlacedFurnitureItem[]>([]);
   const [selectedFurniture, setSelectedFurniture] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("#8b4513");
-  const [showAuthWarning, setShowAuthWarning] = useState<boolean>(false);
   
-  // Check if user is logged in
+  // Check if user is logged in and redirect if not
   useEffect(() => {
     const currentUser = getCurrentUser();
     if (!currentUser) {
-      setShowAuthWarning(true);
+      toast.error("Please log in or register to access the 3D designer");
+      navigate('/login');
     }
-  }, []);
+  }, [navigate]);
 
   const addFurniture = (option: FurnitureItem) => {
     const newFurniture: PlacedFurnitureItem = {
@@ -230,7 +229,6 @@ const Designer3D = () => {
     const currentUser = getCurrentUser();
     if (!currentUser) {
       toast.error("Please log in to save your design");
-      setShowAuthWarning(true);
       return;
     }
     
@@ -245,7 +243,6 @@ const Designer3D = () => {
     const currentUser = getCurrentUser();
     if (!currentUser) {
       toast.error("Please log in to download your design");
-      setShowAuthWarning(true);
       return;
     }
     
@@ -285,14 +282,6 @@ const Designer3D = () => {
     setSelectedFurniture(null);
   }, []);
 
-  const handleLogin = () => {
-    navigate('/login');
-  };
-
-  const handleRegister = () => {
-    navigate('/register');
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -307,28 +296,6 @@ const Designer3D = () => {
             </p>
           </div>
         </section>
-
-        {/* Auth Warning */}
-        {showAuthWarning && (
-          <section className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 mx-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 text-amber-500">
-                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-amber-700">
-                  To save or download your designs, please log in or create an account.
-                </p>
-                <div className="mt-2 flex space-x-2">
-                  <Button size="sm" onClick={handleLogin} variant="outline">Log in</Button>
-                  <Button size="sm" onClick={handleRegister}>Register</Button>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
 
         {/* Canvas and Controls */}
         <section className="py-8">
@@ -408,6 +375,7 @@ const Designer3D = () => {
                   camera={{ position: [10, 10, 10], fov: 50 }}
                   onClick={deselectAll}
                 >
+                  <SoftShadows />
                   <ambientLight intensity={0.3} />
                   <spotLight 
                     position={[0, 10, 10]} 

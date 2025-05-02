@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,8 +10,16 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { loginUser } from "@/utils/authUtils";
 
+interface LocationState {
+  from?: string;
+}
+
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as LocationState;
+  const from = state?.from || '/';
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,7 +34,7 @@ const Login = () => {
     e.preventDefault();
     if (loginUser(formData.email, formData.password)) {
       toast.success("Login successful!");
-      navigate('/');
+      navigate(from);
     } else {
       toast.error("Invalid email or password");
     }
@@ -86,6 +95,11 @@ const Login = () => {
                   Register
                 </Link>
               </div>
+              {from !== '/' && (
+                <p className="text-sm text-center text-amber-600">
+                  Login required to access this feature
+                </p>
+              )}
             </CardFooter>
           </Card>
         </div>

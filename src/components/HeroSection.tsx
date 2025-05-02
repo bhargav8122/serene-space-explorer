@@ -1,8 +1,12 @@
 
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { getCurrentUser } from "@/utils/authUtils";
 
 const HeroSection = () => {
+  const currentUser = getCurrentUser();
+  const designerLink = currentUser ? "/3d-designer" : "/login";
+  
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -21,9 +25,9 @@ const HeroSection = () => {
           Discover beautiful interior designs that transform your house into a home.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
-          <Link to="/3d-designer">
+          <Link to={designerLink}>
             <Button size="lg" className="bg-interior-gold hover:bg-yellow-600 text-black font-semibold">
-              Try for Free
+              {currentUser ? "Try for Free" : "Login to Design"}
             </Button>
           </Link>
           <Link to="/kitchen">
