@@ -211,8 +211,9 @@ function Room({ roomType = 'living-room' }) {
             <meshStandardMaterial color="#8b4513" roughness={0.7} />
           </mesh>
           
-          <mesh position={[3.5, 3.8, -4.5]} castShadow receiveShadow>
-            <cylinderGeometry args={[0.6, 0.6, 0.1, 8]} rotation={[Math.PI / 2, 0, 0]} />
+          {/* Coat rack top - fixed the TypeScript error by removing rotation from args */}
+          <mesh position={[3.5, 3.8, -4.5]} castShadow receiveShadow rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.6, 0.6, 0.1, 8]} />
             <meshStandardMaterial color="#8b4513" roughness={0.7} />
           </mesh>
         </>
@@ -341,7 +342,11 @@ const furnitureOptions: Record<string, FurnitureItem[]> = {
     { id: 5, name: "Floor Lamp", type: "cylinder", color: "#9e9e9e", size: [0.3, 2.5, 0.3] },
     { id: 6, name: "TV Stand", type: "cube", color: "#6d4c41", size: [3, 0.8, 0.6] },
     { id: 7, name: "Area Rug", type: "cube", color: "#b39ddb", size: [4, 0.05, 3] },
-    { id: 8, name: "Side Table", type: "cylinder", color: "#a1887f", size: [0.5, 0.6, 0.5] }
+    { id: 8, name: "Side Table", type: "cylinder", color: "#a1887f", size: [0.5, 0.6, 0.5] },
+    { id: 9, name: "Wall Art", type: "cube", color: "#9fa8da", size: [1.5, 1, 0.05] },
+    { id: 10, name: "Indoor Plant", type: "cylinder", color: "#81c784", size: [0.4, 1.2, 0.4] },
+    { id: 11, name: "Ottoman", type: "cube", color: "#9b87f5", size: [0.8, 0.4, 0.8] },
+    { id: 12, name: "Media Console", type: "cube", color: "#8d6e63", size: [4, 0.6, 0.6] }
   ],
   'kitchen': [
     { id: 1, name: "Dining Table", type: "cube", color: "#8d6e63", size: [2.5, 0.8, 1.5] },
@@ -351,7 +356,11 @@ const furnitureOptions: Record<string, FurnitureItem[]> = {
     { id: 5, name: "Cabinet", type: "cube", color: "#eceff1", size: [1.5, 1.8, 0.6] },
     { id: 6, name: "Refrigerator", type: "cube", color: "#cfd8dc", size: [1.2, 2.5, 0.8] },
     { id: 7, name: "Pendant Light", type: "cylinder", color: "#ffab91", size: [0.3, 0.4, 0.3] },
-    { id: 8, name: "Microwave", type: "cube", color: "#616161", size: [0.6, 0.4, 0.5] }
+    { id: 8, name: "Microwave", type: "cube", color: "#616161", size: [0.6, 0.4, 0.5] },
+    { id: 9, name: "Coffee Machine", type: "cube", color: "#424242", size: [0.5, 0.4, 0.3] },
+    { id: 10, name: "Wine Rack", type: "cube", color: "#8d6e63", size: [0.6, 1.2, 0.3] },
+    { id: 11, name: "Kitchen Utensil Holder", type: "cylinder", color: "#d7ccc8", size: [0.2, 0.3, 0.2] },
+    { id: 12, name: "Cutting Board", type: "cube", color: "#bcaaa4", size: [0.5, 0.05, 0.3] }
   ],
   'bedroom': [
     { id: 1, name: "Nightstand", type: "cube", color: "#a1887f", size: [1, 0.8, 1] },
@@ -361,7 +370,11 @@ const furnitureOptions: Record<string, FurnitureItem[]> = {
     { id: 5, name: "Wardrobe", type: "cube", color: "#8d6e63", size: [2, 4, 1] },
     { id: 6, name: "Vanity Table", type: "cube", color: "#bcaaa4", size: [1.5, 1.2, 0.6] },
     { id: 7, name: "Ottoman", type: "cube", color: "#b39ddb", size: [0.8, 0.4, 0.8] },
-    { id: 8, name: "Floor Mirror", type: "cube", color: "#b0bec5", size: [1, 2, 0.1] }
+    { id: 8, name: "Floor Mirror", type: "cube", color: "#b0bec5", size: [1, 2, 0.1] },
+    { id: 9, name: "Bookshelf", type: "cube", color: "#a1887f", size: [1, 2, 0.4] },
+    { id: 10, name: "Desk", type: "cube", color: "#bcaaa4", size: [1.4, 0.8, 0.7] },
+    { id: 11, name: "Desk Chair", type: "cube", color: "#9e9e9e", size: [0.6, 1, 0.6] },
+    { id: 12, name: "Bedside Rug", type: "cube", color: "#ce93d8", size: [1.5, 0.05, 2.5] }
   ],
   'master-bedroom': [
     { id: 1, name: "King Bed Frame", type: "cube", color: "#5d4037", size: [3.5, 0.5, 2.2] },
@@ -371,7 +384,11 @@ const furnitureOptions: Record<string, FurnitureItem[]> = {
     { id: 5, name: "Walk-in Closet", type: "cube", color: "#6d4c41", size: [2.5, 3, 1] },
     { id: 6, name: "Chaise Lounge", type: "cube", color: "#9fa8da", size: [2, 0.8, 0.8] },
     { id: 7, name: "Area Rug", type: "cube", color: "#ce93d8", size: [3, 0.05, 2.5] },
-    { id: 8, name: "TV Console", type: "cube", color: "#6d4c41", size: [2, 0.6, 0.5] }
+    { id: 8, name: "TV Console", type: "cube", color: "#6d4c41", size: [2, 0.6, 0.5] },
+    { id: 9, name: "Reading Nook", type: "cube", color: "#9fa8da", size: [1.5, 1.2, 1.5] },
+    { id: 10, name: "Pendant Light", type: "sphere", color: "#ffcc80", size: [0.5, 16, 16] },
+    { id: 11, name: "Wall Shelves", type: "cube", color: "#8d6e63", size: [2, 0.1, 0.5] },
+    { id: 12, name: "Decorative Mirror", type: "cube", color: "#b0bec5", size: [1.8, 2.5, 0.1] }
   ],
   'hall': [
     { id: 1, name: "Console Table", type: "cube", color: "#8d6e63", size: [2, 0.8, 0.6] },
@@ -381,7 +398,11 @@ const furnitureOptions: Record<string, FurnitureItem[]> = {
     { id: 5, name: "Floor Plant", type: "cylinder", color: "#558b2f", size: [0.4, 1, 0.4] },
     { id: 6, name: "Pendant Light", type: "sphere", color: "#ffcc80", size: [0.4, 16, 16] },
     { id: 7, name: "Runner Rug", type: "cube", color: "#9fa8da", size: [1, 0.05, 3] },
-    { id: 8, name: "Wall Sconce", type: "cylinder", color: "#ffcc80", size: [0.2, 0.4, 0.2] }
+    { id: 8, name: "Wall Sconce", type: "cylinder", color: "#ffcc80", size: [0.2, 0.4, 0.2] },
+    { id: 9, name: "Hall Table", type: "cube", color: "#8d6e63", size: [1.2, 0.9, 0.4] },
+    { id: 10, name: "Key Holder", type: "cube", color: "#a1887f", size: [0.3, 0.5, 0.1] },
+    { id: 11, name: "Umbrella Stand", type: "cylinder", color: "#616161", size: [0.2, 0.6, 0.2] },
+    { id: 12, name: "Wall Art", type: "cube", color: "#9fa8da", size: [1, 1.5, 0.05] }
   ]
 };
 
@@ -400,7 +421,17 @@ const colorOptions = [
   "#a5d6a7", // Light green
   "#81c784", // Green
   "#fff59d", // Light yellow
-  "#e6ee9c"  // Lime
+  "#e6ee9c",  // Lime
+  "#9b87f5", // Primary purple
+  "#7E69AB", // Secondary purple
+  "#D6BCFA", // Light purple
+  "#F2FCE2", // Soft green
+  "#FEF7CD", // Soft yellow
+  "#FEC6A1", // Soft orange
+  "#E5DEFF", // Soft purple
+  "#FFDEE2", // Soft pink
+  "#FDE1D3", // Soft peach
+  "#D3E4FD"  // Soft blue
 ];
 
 const Designer3D = () => {
@@ -601,12 +632,12 @@ const Designer3D = () => {
                 </div>
 
                 <h2 className="text-xl font-semibold my-4 text-interior-navy">Colors</h2>
-                <div className="grid grid-cols-7 gap-2 mb-4">
+                <div className="grid grid-cols-8 gap-2 mb-4">
                   {colorOptions.map((color) => (
                     <button
                       key={color}
                       onClick={() => setSelectedColor(color)}
-                      className={`w-8 h-8 rounded-full border-2 ${selectedColor === color ? 'border-black' : 'border-transparent'}`}
+                      className={`w-6 h-6 rounded-full border-2 ${selectedColor === color ? 'border-black' : 'border-transparent'}`}
                       style={{ backgroundColor: color }}
                       aria-label={`Select ${color} color`}
                     />
