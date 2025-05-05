@@ -109,3 +109,67 @@ export const downloadDesign = async (
     return { success: false, message: 'Download preparation failed' };
   }
 };
+
+// New function for getting material quality settings
+export const getMaterialQuality = () => {
+  return {
+    roughness: 0.3,
+    metalness: 0.1,
+    envMapIntensity: 1.0,
+    clearcoat: 0.1,
+    clearcoatRoughness: 0.1,
+    normalScale: 0.5,
+    transmission: 0.0,
+    ior: 1.5,
+    reflectivity: 0.5
+  };
+};
+
+// New function for getting realistic textures for different materials
+export const getTextureSettings = (materialType: string) => {
+  switch (materialType) {
+    case 'wood':
+      return {
+        roughness: 0.65,
+        metalness: 0.0,
+        color: '#8b5a2b',
+        bumpScale: 0.05
+      };
+    case 'fabric':
+      return {
+        roughness: 0.85,
+        metalness: 0.0,
+        color: '#e0e0e0',
+        bumpScale: 0.02
+      };
+    case 'metal':
+      return {
+        roughness: 0.2,
+        metalness: 0.8,
+        color: '#c0c0c0',
+        bumpScale: 0.01
+      };
+    case 'glass':
+      return {
+        roughness: 0.05,
+        metalness: 0.1,
+        transmission: 0.9,
+        color: '#ffffff',
+        clearcoat: 1.0
+      };
+    case 'leather':
+      return {
+        roughness: 0.6,
+        metalness: 0.05,
+        color: '#614126',
+        bumpScale: 0.03
+      };
+    default:
+      return {
+        roughness: 0.5,
+        metalness: 0.0,
+        color: '#a0a0a0',
+        bumpScale: 0.01
+      };
+  }
+};
