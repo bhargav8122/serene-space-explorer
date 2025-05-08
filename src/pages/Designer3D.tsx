@@ -13,6 +13,7 @@ import Furniture3D, { PlacedFurnitureItem } from '../components/3d/Furniture3D';
 import { furnitureOptions } from '../components/3d/FurnitureData';
 import DesignerControls from '../components/3d/DesignerControls';
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const Designer3D = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Designer3D = () => {
   const [dragStart, setDragStart] = useState<[number, number, number] | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const currentUser = getCurrentUser();
   
   // Get room type from URL parameters
   useEffect(() => {
@@ -43,6 +45,29 @@ const Designer3D = () => {
     }
   }, [navigate]);
 
+  // Function to check if a position is valid (not overlapping with existing furniture)
+  const isValidPosition = (newFurniture: PlacedFurnitureItem): boolean => {
+    // Simple collision detection based on bounding boxes
+    for (const existing of placedFurniture) {
+      // Skip checking against itself
+      if (existing.id === newFurniture.id) continue;
+      
+      // Calculate distance between centers
+      const dx = Math.abs(existing.position[0] - newFurniture.position[0]);
+      const dz = Math.abs(existing.position[2] - newFurniture.position[2]);
+      
+      // Calculate minimum non-overlapping distance
+      const minDistanceX = (existing.size[0] + newFurniture.size[0]) / 2;
+      const minDistanceZ = (existing.size[2] + newFurniture.size[2]) / 2;
+      
+      // Check for overlap
+      if (dx < minDistanceX && dz < minDistanceZ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   const addFurniture = useCallback((option: any) => {
     const newFurniture: PlacedFurnitureItem = {
       id: Date.now(),
@@ -52,9 +77,30 @@ const Designer3D = () => {
       size: option.size,
       position: [0, option.size[1]/2, 0]
     };
-    setPlacedFurniture(prev => [...prev, newFurniture]);
-    toast.success(`Added ${option.name}`);
-  }, [selectedColor]);
+    
+    // Find a valid position for the new furniture
+    let attempts = 0;
+    const maxAttempts = 20;
+    let validPosition = false;
+    
+    while (!validPosition && attempts < maxAttempts) {
+      // Try different positions in a grid pattern
+      const gridSize = 2;
+      const x = (attempts % 5 - 2) * gridSize;
+      const z = (Math.floor(attempts / 5) - 2) * gridSize;
+      
+      newFurniture.position = [x, newFurniture.size[1]/2, z];
+      validPosition = isValidPosition(newFurniture);
+      attempts++;
+    }
+    
+    if (validPosition) {
+      setPlacedFurniture(prev => [...prev, newFurniture]);
+      toast.success(`Added ${option.name}`);
+    } else {
+      toast.error("Not enough space to place this furniture. Try removing some items first.");
+    }
+  }, [selectedColor, placedFurniture]);
 
   const handleDragStart = useCallback((id: number, position: [number, number, number]) => {
     setDragStart(position);
@@ -70,15 +116,30 @@ const Designer3D = () => {
   }, [dragStart]);
 
   const updateFurniturePosition = useCallback((id: number, newPosition: [number, number, number]) => {
-    setPlacedFurniture(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, position: newPosition } : item
-      )
-    );
+    // Create a temporary furniture item with the new position to check for collisions
+    const furnitureToUpdate = placedFurniture.find(item => item.id === id);
     
-    // Call API to transform object
-    transformObject(id, newPosition);
-  }, []);
+    if (!furnitureToUpdate) return;
+    
+    const tempFurniture = {
+      ...furnitureToUpdate,
+      position: newPosition
+    };
+    
+    // Check if new position is valid (not overlapping)
+    if (isValidPosition(tempFurniture)) {
+      setPlacedFurniture(prev => 
+        prev.map(item => 
+          item.id === id ? { ...item, position: newPosition } : item
+        )
+      );
+      
+      // Call API to transform object
+      transformObject(id, newPosition);
+    } else {
+      toast.error("Cannot move furniture to that position - it would overlap with another item.");
+    }
+  }, [placedFurniture]);
 
   const deleteFurniture = useCallback(() => {
     if (selectedFurniture !== null) {
@@ -151,11 +212,11 @@ const Designer3D = () => {
         {/* Hero Section */}
         <section className="py-8 bg-gray-50">
           <div className="container mx-auto px-6">
-            <h1 className="text-3xl font-bold text-interior-navy mb-4">My Space 3D {getRoomTitle()} Designer</h1>
+            <h1 className="text-3xl font-bold text-interior-navy mb-4">DreamSpace 3D {getRoomTitle()} Designer</h1>
             <p className="text-gray-700 mb-4">
               Design your dream {roomType.replace(/-/g, ' ')} in real-time with our modern 3D interior designer.
             </p>
-            <div className="flex gap-2 overflow-x-auto py-2">
+            <div className="flex flex-wrap gap-2 overflow-x-auto py-2">
               <Button
                 variant={roomType === 'living-room' ? "default" : "outline"}
                 className={roomType === 'living-room' ? "bg-interior-navy" : "border-interior-navy text-interior-navy"}
@@ -191,6 +252,16 @@ const Designer3D = () => {
               >
                 Hall
               </Button>
+              {currentUser && (
+                <Link to="/">
+                  <Button 
+                    variant="outline" 
+                    className="border-green-600 text-green-600 hover:bg-green-600 hover:text-white ml-auto"
+                  >
+                    Homepage
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </section>

@@ -50,6 +50,40 @@ const DesignerControls = ({
         return <Image className="h-4 w-4" />;
     }
   };
+
+  // Get furniture image based on type
+  const getFurnitureImage = (type: string) => {
+    switch(type) {
+      case 'l-shaped-sofa':
+        return "/photo-1721322800607-8c38375eef04";
+      case 'coffee-table':
+        return "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1469&auto=format&fit=crop";
+      case 'bookshelf':
+        return "https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1470&auto=format&fit=crop";
+      case 'accent-chair':
+        return "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1516&auto=format&fit=crop";
+      case 'tv-console':
+        return "https://images.unsplash.com/photo-1615651424233-bab26f5a1aaf?q=80&w=1470&auto=format&fit=crop";
+      case 'dining-table-set':
+        return "https://images.unsplash.com/photo-1617806118233-18e1de247200?q=80&w=1632&auto=format&fit=crop";
+      case 'kitchen-island':
+        return "https://images.unsplash.com/photo-1556912172-45b7abe8b7e1?q=80&w=1480&auto=format&fit=crop";
+      case 'bed':
+        return "https://images.unsplash.com/photo-1617098474210-ad7a700d8c49?q=80&w=1480&auto=format&fit=crop";
+      case 'nightstand':
+        return "https://images.unsplash.com/photo-1595500060384-dd4408fcb36e?q=80&w=1470&auto=format&fit=crop";
+      case 'dresser':
+        return "https://images.unsplash.com/photo-1591129841117-3adfd313e34f?q=80&w=1528&auto=format&fit=crop";
+      case 'pendant-light':
+        return "https://images.unsplash.com/photo-1606542758304-820b04394ac2?q=80&w=1364&auto=format&fit=crop";
+      case 'rug':
+        return "https://images.unsplash.com/photo-1609268479799-8a0675d3ecbc?q=80&w=1528&auto=format&fit=crop";
+      case 'indoor-plant':
+        return "https://images.unsplash.com/photo-1485955900006-10f4d324d411?q=80&w=1472&auto=format&fit=crop";
+      default:
+        return null;
+    }
+  };
   
   return (
     <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
@@ -63,10 +97,13 @@ const DesignerControls = ({
             draggable={true}
           >
             <div className="h-24 bg-gray-200 flex items-center justify-center">
-              {option.type === 'l-shaped-sofa' && (
-                <img src="/photo-1721322800607-8c38375eef04" alt={option.name} className="w-full h-full object-cover" />
-              )}
-              {option.type !== 'l-shaped-sofa' && (
+              {getFurnitureImage(option.type) ? (
+                <img 
+                  src={getFurnitureImage(option.type)} 
+                  alt={option.name} 
+                  className="w-full h-full object-cover" 
+                />
+              ) : (
                 <div className="text-4xl text-gray-500 flex items-center justify-center">
                   {getFurnitureIcon(option.type)}
                 </div>

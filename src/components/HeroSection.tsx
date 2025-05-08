@@ -20,7 +20,7 @@ const HeroSection = () => {
       
       {/* Content */}
       <div className="relative z-10 container mx-auto text-center text-white px-4">
-        <h1 className="text-4xl md:text-6xl font-bold mb-6">Welcome to Serene Space</h1>
+        <h1 className="text-4xl md:text-6xl font-bold mb-6">Welcome to DreamSpace</h1>
         <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
           Discover beautiful interior designs that transform your house into a home.
         </p>
