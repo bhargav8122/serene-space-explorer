@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
@@ -150,7 +151,7 @@ const Designer3D = () => {
         {/* Hero Section */}
         <section className="py-8 bg-gray-50">
           <div className="container mx-auto px-6">
-            <h1 className="text-3xl font-bold text-interior-navy mb-4">Bhargav Space 3D {getRoomTitle()} Designer</h1>
+            <h1 className="text-3xl font-bold text-interior-navy mb-4">My Space 3D {getRoomTitle()} Designer</h1>
             <p className="text-gray-700 mb-4">
               Design your dream {roomType.replace(/-/g, ' ')} in real-time with our modern 3D interior designer.
             </p>

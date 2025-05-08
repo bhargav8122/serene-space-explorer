@@ -60,12 +60,17 @@ const DesignerControls = ({
             key={option.id}
             className="bg-gray-50 rounded-lg overflow-hidden transition-all hover:shadow-md cursor-pointer"
             onClick={() => addFurniture(option)}
+            draggable={true}
           >
             <div className="h-24 bg-gray-200 flex items-center justify-center">
-              {/* We would use real images in production */}
-              <div className="text-4xl text-gray-500 flex items-center justify-center">
-                {getFurnitureIcon(option.type)}
-              </div>
+              {option.type === 'l-shaped-sofa' && (
+                <img src="/photo-1721322800607-8c38375eef04" alt={option.name} className="w-full h-full object-cover" />
+              )}
+              {option.type !== 'l-shaped-sofa' && (
+                <div className="text-4xl text-gray-500 flex items-center justify-center">
+                  {getFurnitureIcon(option.type)}
+                </div>
+              )}
             </div>
             <div className="p-3">
               <div className="flex justify-between w-full">
