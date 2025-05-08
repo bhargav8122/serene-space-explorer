@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
@@ -241,8 +240,6 @@ const Designer3D = () => {
                         isSelected={selectedFurniture === item.id}
                         onSelect={setSelectedFurniture}
                         onPositionChange={updateFurniturePosition}
-                        onDragStart={(position) => handleDragStart(item.id, position)}
-                        onDragEnd={(position) => handleDragEnd(item.id, position)}
                       />
                     ))}
                   </group>

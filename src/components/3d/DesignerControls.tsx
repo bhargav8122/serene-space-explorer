@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Trash2, Download, Save, Cloud, Sofa, Chair, Table, Bed, Image } from "lucide-react";
+import { Trash2, Download, Save, Cloud, Sofa, Armchair, Table, Bed, Image } from "lucide-react";
 import { FurnitureItem } from './Furniture3D';
 import { colorOptions } from './FurnitureData';
 import { saveFurnitureState, downloadDesign, getFurnitureImagePath } from '../../services/threeDService';
@@ -39,7 +39,7 @@ const DesignerControls = ({
       case 'accent-chair':
         return <Sofa className="h-4 w-4" />;
       case 'chair':
-        return <Chair className="h-4 w-4" />;
+        return <Armchair className="h-4 w-4" />;
       case 'coffee-table':
       case 'dining-table-set':
       case 'tv-console':
