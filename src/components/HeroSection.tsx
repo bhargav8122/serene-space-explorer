@@ -30,11 +30,13 @@ const HeroSection = () => {
               {currentUser ? "Try for Free" : "Login to Design"}
             </Button>
           </Link>
-          <Link to="/kitchen">
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-interior-navy">
-              Explore Designs
-            </Button>
-          </Link>
+          {currentUser && (
+            <Link to="/kitchen">
+              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-interior-navy">
+                Explore Designs
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </section>
