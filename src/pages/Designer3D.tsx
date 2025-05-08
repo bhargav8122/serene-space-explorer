@@ -1,12 +1,12 @@
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, TransformControls } from '@react-three/drei';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
-import { transformObject, saveFurnitureState } from '../services/threeDService';
+import { transformObject, saveFurnitureState, handleDragDrop } from '../services/threeDService';
 import { getCurrentUser } from '@/utils/authUtils';
 import Room3D from '../components/3d/Room3D';
 import Furniture3D, { PlacedFurnitureItem } from '../components/3d/Furniture3D';
@@ -21,6 +21,9 @@ const Designer3D = () => {
   const [selectedFurniture, setSelectedFurniture] = useState<number | null>(null);
   const [selectedColor, setSelectedColor] = useState<string>("#607d8b");
   const [roomType, setRoomType] = useState<string>('living-room');
+  const [dragStart, setDragStart] = useState<[number, number, number] | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Get room type from URL parameters
   useEffect(() => {
@@ -52,6 +55,19 @@ const Designer3D = () => {
     setPlacedFurniture(prev => [...prev, newFurniture]);
     toast.success(`Added ${option.name}`);
   }, [selectedColor]);
+
+  const handleDragStart = useCallback((id: number, position: [number, number, number]) => {
+    setDragStart(position);
+    setIsDragging(true);
+  }, []);
+
+  const handleDragEnd = useCallback((id: number, endPosition: [number, number, number]) => {
+    if (dragStart) {
+      handleDragDrop(id, dragStart, endPosition);
+      setDragStart(null);
+      setIsDragging(false);
+    }
+  }, [dragStart]);
 
   const updateFurniturePosition = useCallback((id: number, newPosition: [number, number, number]) => {
     setPlacedFurniture(prev => 
@@ -135,7 +151,7 @@ const Designer3D = () => {
         {/* Hero Section */}
         <section className="py-8 bg-gray-50">
           <div className="container mx-auto px-6">
-            <h1 className="text-3xl font-bold text-interior-navy mb-4">3D {getRoomTitle()} Designer</h1>
+            <h1 className="text-3xl font-bold text-interior-navy mb-4">Bhargav Space 3D {getRoomTitle()} Designer</h1>
             <p className="text-gray-700 mb-4">
               Design your dream {roomType.replace(/-/g, ' ')} in real-time with our modern 3D interior designer.
             </p>
@@ -199,6 +215,7 @@ const Designer3D = () => {
               {/* 3D Canvas */}
               <div className="lg:col-span-3 bg-gray-100 rounded-lg shadow-md" style={{ height: "600px" }}>
                 <Canvas 
+                  ref={canvasRef}
                   shadows 
                   camera={{ position: [10, 10, 10], fov: 50 }}
                   onClick={deselectAll}
@@ -224,6 +241,8 @@ const Designer3D = () => {
                         isSelected={selectedFurniture === item.id}
                         onSelect={setSelectedFurniture}
                         onPositionChange={updateFurniturePosition}
+                        onDragStart={(position) => handleDragStart(item.id, position)}
+                        onDragEnd={(position) => handleDragEnd(item.id, position)}
                       />
                     ))}
                   </group>
@@ -232,7 +251,7 @@ const Designer3D = () => {
                     enablePan={true} 
                     enableZoom={true} 
                     enableRotate={true} 
-                    enabled={selectedFurniture === null}
+                    enabled={selectedFurniture === null && !isDragging}
                     maxPolarAngle={Math.PI / 2}
                   />
                 </Canvas>
@@ -245,7 +264,8 @@ const Designer3D = () => {
                 <li>Click on furniture items from the menu to add them to your room</li>
                 <li>Use the color picker to select different colors for your furniture</li>
                 <li>Click on any furniture item to select it - it will highlight in red</li>
-                <li>Use the arrow controls that appear to move the selected furniture</li>
+                <li>Click and drag furniture items directly to move them around your room</li>
+                <li>Use the arrow controls that appear to move the selected furniture precisely</li>
                 <li>Click the "Remove Item" button to delete selected furniture</li>
                 <li>Click and drag in the 3D view to rotate the camera (when no item is selected)</li>
                 <li>Use the scroll wheel to zoom in and out</li>

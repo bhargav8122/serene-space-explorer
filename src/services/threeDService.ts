@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 interface APIResponse {
@@ -25,6 +24,29 @@ export const transformObject = async (
     console.error('Transform error:', error);
     toast.error('Failed to transform object');
     return { success: false, message: 'Transform failed' };
+  }
+};
+
+export const handleDragDrop = async (
+  objectId: number,
+  startPosition: [number, number, number],
+  endPosition: [number, number, number]
+): Promise<APIResponse> => {
+  try {
+    console.log(`Drag started at: ${startPosition}, ended at: ${endPosition}`);
+    
+    // In a real app, this would be a real API call
+    // For demo purposes, we'll simulate a successful response
+    
+    return {
+      success: true,
+      message: 'Object dragged and dropped successfully',
+      data: { objectId, startPosition, endPosition }
+    };
+  } catch (error) {
+    console.error('Drag and drop error:', error);
+    toast.error('Failed to drag and drop object');
+    return { success: false, message: 'Drag and drop failed' };
   }
 };
 
@@ -290,5 +312,57 @@ export const getRoomColorScheme = (designStyle: string) => {
         neutral: '#e0e0e0',
         wood: '#8b5a2b'
       };
+  }
+};
+
+// New function to get realistic furniture images for 3D models
+export const getFurnitureImagePath = (furnitureType: string, roomType: string): string => {
+  // This would be replaced with real image paths in a production app
+  const basePath = "/furniture-images";
+  
+  // Map furniture types to their image paths
+  switch (furnitureType) {
+    // Living room furniture
+    case 'l-shaped-sofa':
+      return `${basePath}/living-room/l-shaped-sofa.png`;
+    case 'coffee-table':
+      return `${basePath}/living-room/coffee-table.png`;
+    case 'bookshelf':
+      return `${basePath}/living-room/bookshelf.png`;
+    case 'accent-chair':
+      return `${basePath}/living-room/accent-chair.png`;
+    case 'tv-console':
+      return `${basePath}/living-room/tv-console.png`;
+    
+    // Kitchen furniture
+    case 'dining-table-set':
+      return `${basePath}/kitchen/dining-table.png`;
+    case 'kitchen-island':
+      return `${basePath}/kitchen/kitchen-island.png`;
+    
+    // Bedroom furniture
+    case 'bed':
+      return `${basePath}/bedroom/bed.png`;
+    case 'nightstand':
+      return `${basePath}/bedroom/nightstand.png`;
+    case 'dresser':
+      return `${basePath}/bedroom/dresser.png`;
+    
+    // Generic furniture types
+    case 'rug':
+      return `${basePath}/${roomType}/rug.png`;
+    case 'pendant-light':
+      return `${basePath}/${roomType}/pendant-light.png`;
+    case 'indoor-plant':
+      return `${basePath}/${roomType}/plant.png`;
+    
+    // Fallback to basic shapes
+    case 'cube':
+      return `${basePath}/shapes/cube.png`;
+    case 'cylinder':
+      return `${basePath}/shapes/cylinder.png`;
+    
+    default:
+      return `${basePath}/placeholder.png`;
   }
 };

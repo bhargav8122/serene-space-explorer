@@ -2,10 +2,10 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Trash2, Download, Save, Cloud } from "lucide-react";
+import { Trash2, Download, Save, Cloud, Sofa, Chair, Table, Bed, Image } from "lucide-react";
 import { FurnitureItem } from './Furniture3D';
 import { colorOptions } from './FurnitureData';
-import { saveFurnitureState, downloadDesign } from '../../services/threeDService';
+import { saveFurnitureState, downloadDesign, getFurnitureImagePath } from '../../services/threeDService';
 import { getCurrentUser } from '@/utils/authUtils';
 
 interface DesignerControlsProps {
@@ -32,24 +32,51 @@ const DesignerControls = ({
   roomType
 }: DesignerControlsProps) => {
   
+  // Get icon for furniture type
+  const getFurnitureIcon = (type: string) => {
+    switch(type) {
+      case 'l-shaped-sofa':
+      case 'accent-chair':
+        return <Sofa className="h-4 w-4" />;
+      case 'chair':
+        return <Chair className="h-4 w-4" />;
+      case 'coffee-table':
+      case 'dining-table-set':
+      case 'tv-console':
+        return <Table className="h-4 w-4" />;
+      case 'bed':
+        return <Bed className="h-4 w-4" />;
+      default:
+        return <Image className="h-4 w-4" />;
+    }
+  };
+  
   return (
     <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-xl font-semibold mb-4 text-interior-navy">Furniture</h2>
       <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
         {currentFurniture.map((option) => (
-          <Button
+          <div 
             key={option.id}
+            className="bg-gray-50 rounded-lg overflow-hidden transition-all hover:shadow-md cursor-pointer"
             onClick={() => addFurniture(option)}
-            className="w-full justify-between bg-interior-navy hover:bg-blue-900 flex flex-col items-start p-3"
           >
-            <div className="flex justify-between w-full">
-              <span>{option.name}</span>
-              <span className="text-xs px-2 py-0.5 bg-white/20 rounded">Add</span>
+            <div className="h-24 bg-gray-200 flex items-center justify-center">
+              {/* We would use real images in production */}
+              <div className="text-4xl text-gray-500 flex items-center justify-center">
+                {getFurnitureIcon(option.type)}
+              </div>
             </div>
-            {option.description && (
-              <p className="text-xs text-left text-white/80 mt-1 line-clamp-2">{option.description}</p>
-            )}
-          </Button>
+            <div className="p-3">
+              <div className="flex justify-between w-full">
+                <span className="font-medium text-interior-navy">{option.name}</span>
+                <span className="text-xs px-2 py-0.5 bg-interior-navy text-white rounded">Add</span>
+              </div>
+              {option.description && (
+                <p className="text-xs text-left text-gray-600 mt-1 line-clamp-2">{option.description}</p>
+              )}
+            </div>
+          </div>
         ))}
       </div>
 
@@ -77,7 +104,7 @@ const DesignerControls = ({
             <Trash2 className="mr-2 h-4 w-4" /> Remove Item
           </Button>
           <p className="text-xs text-gray-600 mt-1">
-            Click and drag the arrows in the 3D view to move the selected item
+            Click and drag the furniture directly to move it, or use the transform controls for precise positioning
           </p>
         </div>
       )}
