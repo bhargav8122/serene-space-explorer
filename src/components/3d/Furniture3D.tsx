@@ -1,3 +1,4 @@
+
 import { useRef, useState, useEffect } from 'react';
 import { TransformControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
@@ -401,84 +402,93 @@ function Furniture3D({
     }
   };
 
-  // Custom dragging implementation
+  // Custom dragging implementation with improved hit detection
   const [raycaster] = useState(() => new THREE.Raycaster());
   const [pointer] = useState(() => new THREE.Vector2());
   const [plane] = useState(() => new THREE.Plane(new THREE.Vector3(0, 1, 0))); // Horizontal plane
   const [planeIntersection] = useState(() => new THREE.Vector3());
   
+  // Create an invisible box for better dragging hit detection
+  const hitBoxRef = useRef<THREE.Mesh>(null);
+  
   useEffect(() => {
     const handlePointerDown = (event: PointerEvent) => {
-      // Check if we're clicking on this object
-      if (meshRef.current) {
-        // Convert pointer to normalized device coordinates
-        pointer.x = (event.clientX / gl.domElement.clientWidth) * 2 - 1;
-        pointer.y = -(event.clientY / gl.domElement.clientHeight) * 2 + 1;
+      if (!hitBoxRef.current) return;
+      
+      // Convert pointer to normalized device coordinates
+      pointer.x = (event.clientX / gl.domElement.clientWidth) * 2 - 1;
+      pointer.y = -(event.clientY / gl.domElement.clientHeight) * 2 + 1;
+      
+      raycaster.setFromCamera(pointer, camera);
+      
+      // Check if we're hitting the furniture item's hit box
+      const intersects = raycaster.intersectObject(hitBoxRef.current);
+      
+      if (intersects.length > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        setIsDragging(true);
+        onSelect(item.id);
         
-        raycaster.setFromCamera(pointer, camera);
-        const intersects = raycaster.intersectObject(meshRef.current, true);
+        // Store the initial object position
+        setDragStartPos([item.position[0], item.position[1], item.position[2]]);
         
-        if (intersects.length > 0) {
-          event.preventDefault();
-          setIsDragging(true);
-          onSelect(item.id);
-          
-          // Store the initial object position
-          setDragStartPos([item.position[0], item.position[1], item.position[2]]);
-          
-          // Start tracking pointer move and up events
-          gl.domElement.addEventListener('pointermove', handlePointerMove);
-          gl.domElement.addEventListener('pointerup', handlePointerUp);
-        }
+        // Calculate drag plane height to match the object's current position
+        plane.constant = -item.position[1];
+        
+        // Start tracking pointer move and up events
+        document.addEventListener('pointermove', handlePointerMove);
+        document.addEventListener('pointerup', handlePointerUp);
+        
+        return false; // Prevent event from propagating to room
       }
     };
     
     const handlePointerMove = (event: PointerEvent) => {
-      if (isDragging && meshRef.current) {
-        // Convert pointer to normalized device coordinates
-        pointer.x = (event.clientX / gl.domElement.clientWidth) * 2 - 1;
-        pointer.y = -(event.clientY / gl.domElement.clientHeight) * 2 + 1;
+      if (!isDragging) return;
+      
+      // Convert pointer to normalized device coordinates
+      pointer.x = (event.clientX / gl.domElement.clientWidth) * 2 - 1;
+      pointer.y = -(event.clientY / gl.domElement.clientHeight) * 2 + 1;
+      
+      // Cast a ray to the plane
+      raycaster.setFromCamera(pointer, camera);
+      
+      // Get the point where the ray intersects the plane
+      if (raycaster.ray.intersectPlane(plane, planeIntersection)) {
+        const newPosition: [number, number, number] = [
+          planeIntersection.x,
+          item.position[1], // Keep original height
+          planeIntersection.z
+        ];
         
-        // Cast a ray to the plane
-        raycaster.setFromCamera(pointer, camera);
-        
-        // Set the plane to pass through the object's current y position
-        plane.constant = -item.position[1];
-        
-        // Get the point where the ray intersects the plane
-        if (raycaster.ray.intersectPlane(plane, planeIntersection)) {
-          const newPosition: [number, number, number] = [
-            planeIntersection.x,
-            item.position[1], // Keep original height
-            planeIntersection.z
-          ];
-          
-          // Check if new position is valid
-          if (checkValidPosition(item.id, newPosition)) {
-            onPositionChange(item.id, newPosition);
-          }
+        // Check if new position is valid
+        if (checkValidPosition(item.id, newPosition)) {
+          onPositionChange(item.id, newPosition);
         }
       }
+      
+      event.preventDefault();
     };
     
-    const handlePointerUp = () => {
+    const handlePointerUp = (event: PointerEvent) => {
       if (isDragging) {
         setIsDragging(false);
         
         // Clean up event listeners
-        gl.domElement.removeEventListener('pointermove', handlePointerMove);
-        gl.domElement.removeEventListener('pointerup', handlePointerUp);
+        document.removeEventListener('pointermove', handlePointerMove);
+        document.removeEventListener('pointerup', handlePointerUp);
       }
     };
     
-    // Add event listener for pointer down
+    // Add event listener for pointer down on the canvas
     gl.domElement.addEventListener('pointerdown', handlePointerDown);
     
     // Cleanup event listeners
     return () => {
       gl.domElement.removeEventListener('pointerdown', handlePointerDown);
-      gl.domElement.removeEventListener('pointermove', handlePointerMove);
-      gl.domElement.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointerup', handlePointerUp);
     };
   }, [
     item, 
@@ -495,16 +505,19 @@ function Furniture3D({
   ]);
 
   return (
-    <>
+    <group>
+      {/* Invisible hit box for better drag detection */}
       <mesh
-        ref={meshRef}
+        ref={hitBoxRef}
         position={item.position}
+        scale={[item.size[0] * 1.1, item.size[1] * 1.1, item.size[2] * 1.1]}
         visible={false}
       >
-        <boxGeometry args={item.size} />
-        <meshBasicMaterial transparent opacity={0} />
+        <boxGeometry />
+        <meshBasicMaterial opacity={0} transparent={true} />
       </mesh>
       
+      {/* Actual visible furniture */}
       <Furniture
         id={item.id}
         position={item.position}
@@ -529,7 +542,7 @@ function Furniture3D({
           translationSnap={0.25} // Snap to grid for better placement
         />
       )}
-    </>
+    </group>
   );
 }
 

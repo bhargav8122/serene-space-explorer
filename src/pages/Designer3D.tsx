@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
@@ -114,7 +113,10 @@ const Designer3D = () => {
     
     // First check room boundaries
     if (!isWithinRoomBoundaries(testPosition, tempItem.size)) {
-      toast.error("Cannot place furniture outside room boundaries");
+      // Only show toast when user is actively moving items (not during initialization)
+      if (isDragging || selectedFurniture === testId) {
+        toast.error("Cannot place furniture outside room boundaries");
+      }
       return false;
     }
     
@@ -124,12 +126,15 @@ const Designer3D = () => {
       if (existing.id === testId) continue;
       
       if (checkFurnitureCollision(tempItem, existing)) {
-        toast.error(`Cannot place furniture here - it would overlap with ${existing.type}`);
+        // Only show toast when user is actively moving items
+        if (isDragging || selectedFurniture === testId) {
+          toast.error(`Cannot place here - would overlap with ${existing.type}`);
+        }
         return false;
       }
     }
     return true;
-  }, [placedFurniture, isWithinRoomBoundaries, checkFurnitureCollision]);
+  }, [placedFurniture, isWithinRoomBoundaries, checkFurnitureCollision, isDragging, selectedFurniture]);
 
   const addFurniture = useCallback((option: any) => {
     const roomDimensions = ROOM_SIZE[roomType as keyof typeof ROOM_SIZE] || { width: 10, depth: 10 };
@@ -243,7 +248,11 @@ const Designer3D = () => {
     }
   };
 
-  const deselectAll = useCallback(() => {
+  const deselectAll = useCallback((e?: any) => {
+    // Only deselect if clicking on the room background, not on furniture
+    if (e && e.object && e.object.userData?.isFurniture) {
+      return; // Don't deselect when clicking on furniture
+    }
     setSelectedFurniture(null);
   }, []);
 
@@ -371,7 +380,7 @@ const Designer3D = () => {
                         isSelected={selectedFurniture === item.id}
                         onSelect={setSelectedFurniture}
                         onPositionChange={updateFurniturePosition}
-                        checkValidPosition={(id, pos) => isValidPosition(id, pos)}
+                        checkValidPosition={isValidPosition}
                       />
                     ))}
                   </group>
