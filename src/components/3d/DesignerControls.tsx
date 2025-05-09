@@ -55,7 +55,7 @@ const DesignerControls = ({
   const getFurnitureImage = (type: string) => {
     switch(type) {
       case 'l-shaped-sofa':
-        return "/photo-1721322800607-8c38375eef04";
+        return "https://images.unsplash.com/photo-1567016432779-094069958ea5?q=80&w=1480&auto=format&fit=crop";
       case 'coffee-table':
         return "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=1469&auto=format&fit=crop";
       case 'bookshelf':
