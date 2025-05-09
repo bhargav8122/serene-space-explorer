@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { TransformControls, useDrag } from '@react-three/drei';
+import { TransformControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { getTextureSettings } from '../../services/threeDService';
 import * as THREE from 'three';
@@ -377,7 +377,7 @@ function Furniture3D({
 }) {
   const transformRef = useRef<any>(null);
   const meshRef = useRef<THREE.Mesh>(null);
-  const { camera, scene } = useThree();
+  const { camera, scene, gl } = useThree();
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState<[number, number, number]>([0, 0, 0]);
   
@@ -400,50 +400,105 @@ function Furniture3D({
       }
     }
   };
+
+  // Custom dragging implementation
+  const [raycaster] = useState(() => new THREE.Raycaster());
+  const [pointer] = useState(() => new THREE.Vector2());
+  const [plane] = useState(() => new THREE.Plane(new THREE.Vector3(0, 1, 0))); // Horizontal plane
+  const [planeIntersection] = useState(() => new THREE.Vector3());
   
-  // Direct dragging implementation
-  const bind = useDrag(
-    ({ offset: [x, z], event, down, movement }) => {
-      event.stopPropagation();
-      
-      // Calculate the new position
-      let newX = item.position[0] + movement[0] / 50;
-      let newZ = item.position[2] + movement[2] / 50;
-      
-      // When drag starts, store original position
-      if (down && !isDragging) {
-        setIsDragging(true);
-        setDragStartPos([item.position[0], item.position[1], item.position[2]]);
-        onSelect(item.id);
-      }
-      
-      if (down) {
-        // Adjust position only if it's valid
-        const newPosition: [number, number, number] = [newX, item.position[1], newZ];
-        if (checkValidPosition(item.id, newPosition)) {
-          onPositionChange(item.id, newPosition);
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      // Check if we're clicking on this object
+      if (meshRef.current) {
+        // Convert pointer to normalized device coordinates
+        pointer.x = (event.clientX / gl.domElement.clientWidth) * 2 - 1;
+        pointer.y = -(event.clientY / gl.domElement.clientHeight) * 2 + 1;
+        
+        raycaster.setFromCamera(pointer, camera);
+        const intersects = raycaster.intersectObject(meshRef.current, true);
+        
+        if (intersects.length > 0) {
+          event.preventDefault();
+          setIsDragging(true);
+          onSelect(item.id);
+          
+          // Store the initial object position
+          setDragStartPos([item.position[0], item.position[1], item.position[2]]);
+          
+          // Start tracking pointer move and up events
+          gl.domElement.addEventListener('pointermove', handlePointerMove);
+          gl.domElement.addEventListener('pointerup', handlePointerUp);
         }
-      } 
-      
-      // When drag ends
-      if (!down && isDragging) {
-        setIsDragging(false);
       }
-    },
-    {
-      camera,
-      scene,
-      transform: false,
-      pointerEvents: true,
-    }
-  );
+    };
+    
+    const handlePointerMove = (event: PointerEvent) => {
+      if (isDragging && meshRef.current) {
+        // Convert pointer to normalized device coordinates
+        pointer.x = (event.clientX / gl.domElement.clientWidth) * 2 - 1;
+        pointer.y = -(event.clientY / gl.domElement.clientHeight) * 2 + 1;
+        
+        // Cast a ray to the plane
+        raycaster.setFromCamera(pointer, camera);
+        
+        // Set the plane to pass through the object's current y position
+        plane.constant = -item.position[1];
+        
+        // Get the point where the ray intersects the plane
+        if (raycaster.ray.intersectPlane(plane, planeIntersection)) {
+          const newPosition: [number, number, number] = [
+            planeIntersection.x,
+            item.position[1], // Keep original height
+            planeIntersection.z
+          ];
+          
+          // Check if new position is valid
+          if (checkValidPosition(item.id, newPosition)) {
+            onPositionChange(item.id, newPosition);
+          }
+        }
+      }
+    };
+    
+    const handlePointerUp = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        
+        // Clean up event listeners
+        gl.domElement.removeEventListener('pointermove', handlePointerMove);
+        gl.domElement.removeEventListener('pointerup', handlePointerUp);
+      }
+    };
+    
+    // Add event listener for pointer down
+    gl.domElement.addEventListener('pointerdown', handlePointerDown);
+    
+    // Cleanup event listeners
+    return () => {
+      gl.domElement.removeEventListener('pointerdown', handlePointerDown);
+      gl.domElement.removeEventListener('pointermove', handlePointerMove);
+      gl.domElement.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [
+    item, 
+    isDragging, 
+    raycaster, 
+    pointer, 
+    camera, 
+    onPositionChange, 
+    onSelect, 
+    checkValidPosition, 
+    plane, 
+    planeIntersection,
+    gl.domElement
+  ]);
 
   return (
     <>
       <mesh
         ref={meshRef}
         position={item.position}
-        {...bind()}
         visible={false}
       >
         <boxGeometry args={item.size} />
