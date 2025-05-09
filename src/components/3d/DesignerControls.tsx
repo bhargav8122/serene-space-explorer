@@ -146,7 +146,7 @@ const DesignerControls = ({
             <Trash2 className="mr-2 h-4 w-4" /> Remove Item
           </Button>
           <p className="text-xs text-gray-600 mt-1">
-            Click and drag the furniture directly to move it, or use the transform controls for precise positioning
+            Click and drag furniture directly to move it. When selected, use the transform controls for precise positioning.
           </p>
         </div>
       )}

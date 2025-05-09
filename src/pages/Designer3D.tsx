@@ -1,7 +1,8 @@
+
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, TransformControls } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
@@ -14,7 +15,7 @@ import DesignerControls from '../components/3d/DesignerControls';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
-// Room size constants to be used for boundary checking
+// Optimized room size constants to be used for boundary checking
 const ROOM_SIZE = {
   'living-room': { width: 10, depth: 10 },
   'kitchen': { width: 8, depth: 10 },
@@ -22,6 +23,9 @@ const ROOM_SIZE = {
   'hall': { width: 12, depth: 6 },
   'master-bedroom': { width: 10, depth: 10 },
 };
+
+// Improved collision buffer to prevent items from being placed too close to each other
+const COLLISION_BUFFER = 0.1; // Extra buffer distance for collision detection
 
 const Designer3D = () => {
   const navigate = useNavigate();
@@ -53,15 +57,15 @@ const Designer3D = () => {
     }
   }, [navigate]);
 
-  // Function to check if a position is within room boundaries
-  const isWithinRoomBoundaries = (position: [number, number, number], size: [number, number, number]): boolean => {
+  // Improved function to check if a position is within room boundaries
+  const isWithinRoomBoundaries = useCallback((position: [number, number, number], size: [number, number, number]): boolean => {
     const roomDimensions = ROOM_SIZE[roomType as keyof typeof ROOM_SIZE] || { width: 10, depth: 10 };
     
-    // Calculate half dimensions for boundary checks
+    // Calculate half dimensions for boundary checks with buffer
     const halfWidth = size[0] / 2;
     const halfDepth = size[2] / 2;
-    const roomHalfWidth = roomDimensions.width / 2;
-    const roomHalfDepth = roomDimensions.depth / 2;
+    const roomHalfWidth = roomDimensions.width / 2 - 0.1; // Add small buffer to prevent edge placement
+    const roomHalfDepth = roomDimensions.depth / 2 - 0.1;
     
     // Check if the furniture would be outside room boundaries
     if (
@@ -74,35 +78,58 @@ const Designer3D = () => {
     }
     
     return true;
-  };
+  }, [roomType]);
+
+  // Enhanced collision detection between furniture items
+  const checkFurnitureCollision = useCallback((item1: PlacedFurnitureItem, item2: PlacedFurnitureItem): boolean => {
+    // Skip checking against itself
+    if (item1.id === item2.id) return false;
+    
+    // Calculate distance between centers
+    const dx = Math.abs(item1.position[0] - item2.position[0]);
+    const dz = Math.abs(item1.position[2] - item2.position[2]);
+    
+    // Calculate minimum non-overlapping distance with buffer
+    const minDistanceX = (item1.size[0] + item2.size[0]) / 2 + COLLISION_BUFFER;
+    const minDistanceZ = (item1.size[2] + item2.size[2]) / 2 + COLLISION_BUFFER;
+    
+    // Check for overlap
+    if (dx < minDistanceX && dz < minDistanceZ) {
+      return true; // Collision detected
+    }
+    return false;
+  }, []);
 
   // Function to check if a position is valid (not overlapping with existing furniture)
-  const isValidPosition = (newFurniture: PlacedFurnitureItem): boolean => {
+  const isValidPosition = useCallback((testId: number, testPosition: [number, number, number]): boolean => {
+    // Find the furniture item being tested
+    const testItem = placedFurniture.find(item => item.id === testId);
+    if (!testItem) return false;
+    
+    // Create a temporary furniture item with the new position to check
+    const tempItem = {
+      ...testItem,
+      position: testPosition
+    };
+    
     // First check room boundaries
-    if (!isWithinRoomBoundaries(newFurniture.position, newFurniture.size)) {
+    if (!isWithinRoomBoundaries(testPosition, tempItem.size)) {
+      toast.error("Cannot place furniture outside room boundaries");
       return false;
     }
     
     // Then check collision with other furniture
     for (const existing of placedFurniture) {
       // Skip checking against itself
-      if (existing.id === newFurniture.id) continue;
+      if (existing.id === testId) continue;
       
-      // Calculate distance between centers
-      const dx = Math.abs(existing.position[0] - newFurniture.position[0]);
-      const dz = Math.abs(existing.position[2] - newFurniture.position[2]);
-      
-      // Calculate minimum non-overlapping distance
-      const minDistanceX = (existing.size[0] + newFurniture.size[0]) / 2;
-      const minDistanceZ = (existing.size[2] + newFurniture.size[2]) / 2;
-      
-      // Check for overlap
-      if (dx < minDistanceX && dz < minDistanceZ) {
+      if (checkFurnitureCollision(tempItem, existing)) {
+        toast.error(`Cannot place furniture here - it would overlap with ${existing.type}`);
         return false;
       }
     }
     return true;
-  };
+  }, [placedFurniture, isWithinRoomBoundaries, checkFurnitureCollision]);
 
   const addFurniture = useCallback((option: any) => {
     const roomDimensions = ROOM_SIZE[roomType as keyof typeof ROOM_SIZE] || { width: 10, depth: 10 };
@@ -117,19 +144,23 @@ const Designer3D = () => {
       position: [0, option.size[1]/2, 0] // Start at center of room
     };
     
-    // Find a valid position for the new furniture
+    // Find a valid position for the new furniture with improved algorithm
     let attempts = 0;
-    const maxAttempts = 30; // Increase attempts to find a valid position
+    const maxAttempts = 40; // Increase attempts to find a valid position
     let validPosition = false;
     
     while (!validPosition && attempts < maxAttempts) {
-      // Try different positions in a grid pattern, starting from center and moving outward
-      const gridSize = 1;
-      const x = ((attempts % 5) - 2) * gridSize;
-      const z = (Math.floor(attempts / 5) - 2) * gridSize;
+      // Try different positions in a spiral pattern, starting from center and moving outward
+      const angle = attempts * 0.5;
+      const radius = Math.min(roomDimensions.width, roomDimensions.depth) * (0.1 + attempts * 0.05);
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
       
       newFurniture.position = [x, newFurniture.size[1]/2, z];
-      validPosition = isValidPosition(newFurniture);
+      
+      // Create temporary ID for validation
+      const tempId = newFurniture.id;
+      validPosition = isValidPosition(tempId, newFurniture.position);
       attempts++;
     }
     
@@ -139,7 +170,7 @@ const Designer3D = () => {
     } else {
       toast.error("Not enough space to place this furniture. Try removing some items first.");
     }
-  }, [selectedColor, placedFurniture, roomType]);
+  }, [selectedColor, isValidPosition, roomType]);
 
   const handleDragStart = useCallback((id: number, position: [number, number, number]) => {
     setDragStart(position);
@@ -155,42 +186,18 @@ const Designer3D = () => {
   }, [dragStart]);
 
   const updateFurniturePosition = useCallback((id: number, newPosition: [number, number, number]) => {
-    // Create a temporary furniture item with the new position to check for collisions
-    const furnitureToUpdate = placedFurniture.find(item => item.id === id);
-    
-    if (!furnitureToUpdate) return;
-    
-    // Keep y position (height) unchanged
-    const adjustedPosition: [number, number, number] = [
-      newPosition[0],
-      furnitureToUpdate.position[1], // Keep original height
-      newPosition[2]
-    ];
-    
-    const tempFurniture = {
-      ...furnitureToUpdate,
-      position: adjustedPosition
-    };
-    
-    // Check if new position is valid (within boundaries and not overlapping)
-    if (isValidPosition(tempFurniture)) {
+    // Only update if the position is valid
+    if (isValidPosition(id, newPosition)) {
       setPlacedFurniture(prev => 
         prev.map(item => 
-          item.id === id ? { ...item, position: adjustedPosition } : item
+          item.id === id ? { ...item, position: newPosition } : item
         )
       );
       
       // Call API to transform object
-      transformObject(id, adjustedPosition);
-    } else {
-      // If position is invalid, show message and don't update
-      if (!isWithinRoomBoundaries(adjustedPosition, furnitureToUpdate.size)) {
-        toast.error("Cannot move furniture outside the room boundaries.");
-      } else {
-        toast.error("Cannot move furniture to that position - it would overlap with another item.");
-      }
+      transformObject(id, newPosition);
     }
-  }, [placedFurniture]);
+  }, [isValidPosition]);
 
   const deleteFurniture = useCallback(() => {
     if (selectedFurniture !== null) {
@@ -341,6 +348,7 @@ const Designer3D = () => {
                   shadows 
                   camera={{ position: [10, 10, 10], fov: 50 }}
                   onClick={deselectAll}
+                  dpr={[1, 2]} // Optimize rendering for different device pixel ratios
                 >
                   <ambientLight intensity={0.4} />
                   <spotLight 
@@ -363,6 +371,7 @@ const Designer3D = () => {
                         isSelected={selectedFurniture === item.id}
                         onSelect={setSelectedFurniture}
                         onPositionChange={updateFurniturePosition}
+                        checkValidPosition={(id, pos) => isValidPosition(id, pos)}
                       />
                     ))}
                   </group>
@@ -373,6 +382,8 @@ const Designer3D = () => {
                     enableRotate={true} 
                     enabled={selectedFurniture === null && !isDragging}
                     maxPolarAngle={Math.PI / 2}
+                    minDistance={2}
+                    maxDistance={20}
                   />
                 </Canvas>
               </div>
@@ -384,8 +395,9 @@ const Designer3D = () => {
                 <li>Click on furniture items from the menu to add them to your room</li>
                 <li>Use the color picker to select different colors for your furniture</li>
                 <li>Click on any furniture item to select it - it will highlight in red</li>
-                <li>Click and drag furniture items directly to move them around your room</li>
-                <li>Use the arrow controls that appear to move the selected furniture precisely</li>
+                <li><strong>Click and drag furniture items directly</strong> to move them around your room</li>
+                <li>Use the transform controls that appear to move the selected furniture precisely</li>
+                <li>Furniture will automatically prevent placement where it would overlap another item</li>
                 <li>Click the "Remove Item" button to delete selected furniture</li>
                 <li>Click and drag in the 3D view to rotate the camera (when no item is selected)</li>
                 <li>Use the scroll wheel to zoom in and out</li>

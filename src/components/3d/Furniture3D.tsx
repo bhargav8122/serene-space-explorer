@@ -1,7 +1,8 @@
-
-import { useRef } from 'react';
-import { TransformControls } from '@react-three/drei';
+import { useRef, useState, useEffect } from 'react';
+import { TransformControls, useDrag } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
 import { getTextureSettings } from '../../services/threeDService';
+import * as THREE from 'three';
 
 // Types for furniture
 export interface FurnitureItem {
@@ -360,29 +361,95 @@ function Furniture({
   );
 }
 
-// Furniture with transform controls when selected
+// Improved draggable furniture with transform controls when selected
 function Furniture3D({
   item,
   isSelected,
   onSelect,
-  onPositionChange
+  onPositionChange,
+  checkValidPosition
 }: {
   item: PlacedFurnitureItem,
   isSelected: boolean,
   onSelect: (id: number) => void,
-  onPositionChange: (id: number, newPosition: [number, number, number]) => void
+  onPositionChange: (id: number, newPosition: [number, number, number]) => void,
+  checkValidPosition: (id: number, newPosition: [number, number, number]) => boolean
 }) {
   const transformRef = useRef<any>(null);
+  const meshRef = useRef<THREE.Mesh>(null);
+  const { camera, scene } = useThree();
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartPos, setDragStartPos] = useState<[number, number, number]>([0, 0, 0]);
   
-  const handleChange = () => {
+  // Handle position change from transform controls
+  const handleTransformChange = () => {
     if (transformRef.current && transformRef.current.object) {
       const newPosition = transformRef.current.object.position.toArray() as [number, number, number];
-      onPositionChange(item.id, newPosition);
+      // Keep the same height (y coordinate)
+      const adjustedPosition: [number, number, number] = [
+        newPosition[0], 
+        item.position[1], 
+        newPosition[2]
+      ];
+      
+      if (checkValidPosition(item.id, adjustedPosition)) {
+        onPositionChange(item.id, adjustedPosition);
+      } else {
+        // Reset to original position if invalid
+        transformRef.current.object.position.set(item.position[0], item.position[1], item.position[2]);
+      }
     }
   };
+  
+  // Direct dragging implementation
+  const bind = useDrag(
+    ({ offset: [x, z], event, down, movement }) => {
+      event.stopPropagation();
+      
+      // Calculate the new position
+      let newX = item.position[0] + movement[0] / 50;
+      let newZ = item.position[2] + movement[2] / 50;
+      
+      // When drag starts, store original position
+      if (down && !isDragging) {
+        setIsDragging(true);
+        setDragStartPos([item.position[0], item.position[1], item.position[2]]);
+        onSelect(item.id);
+      }
+      
+      if (down) {
+        // Adjust position only if it's valid
+        const newPosition: [number, number, number] = [newX, item.position[1], newZ];
+        if (checkValidPosition(item.id, newPosition)) {
+          onPositionChange(item.id, newPosition);
+        }
+      } 
+      
+      // When drag ends
+      if (!down && isDragging) {
+        setIsDragging(false);
+      }
+    },
+    {
+      camera,
+      scene,
+      transform: false,
+      pointerEvents: true,
+    }
+  );
 
   return (
     <>
+      <mesh
+        ref={meshRef}
+        position={item.position}
+        {...bind()}
+        visible={false}
+      >
+        <boxGeometry args={item.size} />
+        <meshBasicMaterial transparent opacity={0} />
+      </mesh>
+      
       <Furniture
         id={item.id}
         position={item.position}
@@ -393,12 +460,18 @@ function Furniture3D({
         isSelected={isSelected}
         onSelect={onSelect}
       />
+      
       {isSelected && (
         <TransformControls
           ref={transformRef}
           position={item.position}
           mode="translate"
-          onObjectChange={handleChange}
+          onObjectChange={handleTransformChange}
+          showX={true}
+          showY={false} // Prevent vertical movement
+          showZ={true}
+          size={0.7}
+          translationSnap={0.25} // Snap to grid for better placement
         />
       )}
     </>
